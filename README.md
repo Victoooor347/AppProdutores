@@ -2,8 +2,6 @@
 
 App mobile (Expo / React Native) de acesso exclusivo para produtores, com telas de Dashboard, Relatórios, Contra-Notas e gestão de usuário.
 
-> ⚠️ Projeto em desenvolvimento. Várias telas ainda são placeholders de exemplo, e a API de backend ainda não existe — o login funciona hoje com um mock local (veja abaixo).
-
 ## Stack
 
 - [Expo](https://expo.dev) 54 / React Native 0.81 / React 19
@@ -76,19 +74,60 @@ src/
 
 ## Autenticação
 
-O fluxo de login está descrito em detalhe em [`docs/autenticacao.md`](./docs/autenticacao.md) *(ou peça o resumo gerado durante o desenvolvimento)*. Resumo rápido:
 
 1. `src/pages/login` valida o formulário (`src/utils/validators.ts`) e chama `signIn` do `AuthContext`.
 2. `AuthContext` (`src/context/authContext.tsx`) delega para `authService`, que usa a API real se `EXPO_PUBLIC_API_URL` estiver configurada, ou o mock local caso contrário.
 3. A sessão é persistida com `expo-secure-store` (armazenamento criptografado do dispositivo).
 4. `src/routes/index.routes.tsx` decide automaticamente entre a tela de Login e o app principal, com base no estado de autenticação — não existe navegação manual "pulando" o login.
 
-## Status do projeto / próximos passos
 
-- [x] Autenticação com persistência segura de sessão
-- [x] Rotas protegidas por estado de autenticação real
-- [x] Camada de API preparada para o backend (ainda não existente)
-- [x] Validação de CPF e senha no formulário de login
-- [ ] ESLint + Prettier + Husky (lint configurado; hook de pre-commit pendente)
-- [ ] Telas de Dashboard, Relatórios, Contra-Notas e Usuários (hoje são placeholders)
-- [ ] Testes automatizados
+
+## BACKEND/SERVER PARA USAR A API
+
+# API do AppProdutores
+
+Implementação dos endpoints definidos em `contrato-api-rascunho.md`, conectando no Postgres (Neon).
+
+## Como rodar
+
+```bash
+cd server
+npm install
+cp .env.example .env
+```
+
+Edite o `.env` e cole a connection string do seu banco Neon em `DATABASE_URL` (Dashboard do Neon → **Connection Details** → "Connection string", com `?sslmode=require` no final).
+
+Rode o schema e o seed no banco (uma vez só, no SQL Editor do Neon ou via `psql`):
+```bash
+psql "$DATABASE_URL" -f ../db/schema.sql
+psql "$DATABASE_URL" -f ../db/seed.sql
+```
+
+Depois, suba a API:
+```bash
+npm run dev
+```
+
+Vai subir em `http://localhost:3000`.
+
+## Conectando o app nela
+
+No `.env` do app React Native (não desse servidor — é outro `.env`, na raiz do projeto do app):
+```
+EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:3000
+```
+
+⚠️ Não use `localhost` aí — o celular/emulador não entende "localhost" como sendo o seu computador. Use o IP da sua máquina na rede local (ex: `192.168.0.10`), com o celular na mesma rede Wi-Fi. Pra descobrir seu IP: `ipconfig` (Windows) ou `ifconfig`/`ip a` (Mac/Linux).
+
+## Deploy (quando sair do teste local)
+
+Esse servidor Express roda em qualquer lugar que rode Node: Railway, Render, Fly.io, um VPS, etc. Depois do deploy, troca o `EXPO_PUBLIC_API_URL` do app pra URL pública (ex: `https://sua-api.railway.app`) — nenhuma outra mudança é necessária.
+
+## O que ainda falta (propositalmente fora do escopo aqui)
+- Geração de PDF de verdade em `routes/relatorios.js` (hoje só simula com `setTimeout`)
+- Rate limiting / proteção contra força bruta no login
+- Testes automatizados
+
+
+
