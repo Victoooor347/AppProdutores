@@ -22,7 +22,8 @@ export type CargasFiltros = {
   ano?: number;
   inscricaoEstadual?: string;
   cultura?: Cultura;
-  data?: string;
+  dataInicio?: string;
+  dataFim?: string;
 };
 
 export type Pagination = {

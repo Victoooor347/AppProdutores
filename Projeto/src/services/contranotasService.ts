@@ -1,5 +1,22 @@
 import { api, ApiError } from './api';
-import { ContraNotasFiltros, ContraNotasResponse } from '../types/contranotas';
+import { ContraNota, ContraNotasFiltros, ContraNotasResponse } from '../types/contranotas';
+import { mapPagination, RawPagination } from '../utils/apiMappers';
+
+type RawContraNota = {
+  id: string;
+  numero: string;
+  data_emissao: string;
+  arquivo_pdf_url: string;
+};
+
+function mapContraNota(raw: RawContraNota): ContraNota {
+  return {
+    id: raw.id,
+    numero: raw.numero,
+    dataEmissao: raw.data_emissao,
+    arquivoPdfUrl: raw.arquivo_pdf_url,
+  };
+}
 
 function buildQuery(params: Record<string, string | number | undefined>): string {
   const search = new URLSearchParams();
@@ -18,7 +35,14 @@ export async function listContraNotas(
 ): Promise<ContraNotasResponse> {
   try {
     const query = buildQuery({ page: filtros.page, per_page: filtros.perPage });
-    return await api.get<ContraNotasResponse>(`/contra-notas${query}`, token);
+    const response = await api.get<{ data: RawContraNota[]; pagination: RawPagination }>(
+      `/contra-notas${query}`,
+      token
+    );
+    return {
+      data: response.data.map(mapContraNota),
+      pagination: mapPagination(response.pagination),
+    };
   } catch (error) {
     const apiError = error as ApiError;
     if (apiError.message === 'API_URL_NOT_CONFIGURED') {

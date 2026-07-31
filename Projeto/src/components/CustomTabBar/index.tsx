@@ -21,7 +21,7 @@ export default ({state,navigation}: BottomTabBarProps)=>{
                         opacity:state.index === 0?1:0.3, color:themes.colors.verde
                     }} 
                     /> 
-                    <Text> inicio </Text>           
+                    <Text> Inicio </Text>           
             </TouchableOpacity>
 
             <TouchableOpacity style={style.tabItem} onPress={() => go("Relatorios")}>
@@ -32,7 +32,7 @@ export default ({state,navigation}: BottomTabBarProps)=>{
                         opacity:state.index === 1?1:0.3, color:themes.colors.verde
                     }} 
                     />
-                <Text> relatorios </Text>             
+                <Text> Relatórios </Text>             
             </TouchableOpacity>
 
             <TouchableOpacity style={style.tabItem} onPress={() => go("ContraNotas")}>  
@@ -43,7 +43,7 @@ export default ({state,navigation}: BottomTabBarProps)=>{
                         opacity:state.index === 2?1:0.3, color:themes.colors.verde
                     }}  
                     /> 
-                <Text> notas </Text>            
+                <Text> ContraNotas </Text>            
             </TouchableOpacity>
 
             <TouchableOpacity style={style.tabItem} onPress={() => go("User")}>   
@@ -55,7 +55,7 @@ export default ({state,navigation}: BottomTabBarProps)=>{
                     }} 
                     
                     /> 
-                <Text> perfil</Text>          
+                <Text> Perfil </Text>          
             </TouchableOpacity>
 
         </View>

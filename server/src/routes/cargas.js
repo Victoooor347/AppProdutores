@@ -30,7 +30,7 @@ router.get('/resumo', requireAuth, asyncHandler(async (req, res) => {
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1;
   const perPage = Number(req.query.per_page) || 20;
-  const { ano, inscricao_estadual: inscricaoEstadual, cultura, data } = req.query;
+  const { ano, inscricao_estadual: inscricaoEstadual, cultura, data_inicio: dataInicio, data_fim: dataFim } = req.query;
 
   const conditions = ['user_cpf = $1'];
   const params = [req.userCpf];
@@ -47,9 +47,13 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
     params.push(cultura);
     conditions.push(`cultura = $${params.length}`);
   }
-  if (data) {
-    params.push(data);
-    conditions.push(`data = $${params.length}`);
+  if (dataInicio) {
+    params.push(dataInicio);
+    conditions.push(`data >= $${params.length}`);
+  }
+  if (dataFim) {
+    params.push(dataFim);
+    conditions.push(`data <= $${params.length}`);
   }
 
   const whereClause = conditions.join(' AND ');

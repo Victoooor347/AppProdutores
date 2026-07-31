@@ -30,7 +30,9 @@ app.get('/', (req, res) => {
 // do contrato, em vez de estourar uma stack trace pro cliente.
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(500).json({ message: 'Erro interno no servidor.' });
+  const status = err.status || err.statusCode || 500;
+  const message = status < 500 ? err.message : 'Erro interno no servidor.';
+  res.status(status).json({ message });
 });
 
 const PORT = process.env.PORT || 3000;

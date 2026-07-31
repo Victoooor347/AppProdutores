@@ -6,10 +6,63 @@ import {
   GerarPdfJob,
   ResumoCultura,
 } from '../types/cargas';
+import { mapPagination, RawPagination } from '../utils/apiMappers';
 
 // Mesma ideia do authService: se EXPO_PUBLIC_API_URL não estiver configurada,
 // cai automaticamente no mock — assim dá pra montar a tela de Relatório de
 // Safra sem esperar o backend.
+
+// A API responde em snake_case (ver contrato); esses tipos "Raw*" e as
+// funções map* abaixo traduzem pro camelCase que o resto do app usa.
+type RawCarga = {
+  id: string;
+  cultura: 'arroz' | 'soja';
+  data: string;
+  inscricao_estadual: string;
+  quantidade: number;
+  unidade: string;
+  placa: string;
+};
+
+function mapCarga(raw: RawCarga): Carga {
+  return {
+    id: raw.id,
+    cultura: raw.cultura,
+    data: raw.data,
+    inscricaoEstadual: raw.inscricao_estadual,
+    quantidade: raw.quantidade,
+    unidade: raw.unidade,
+    placa: raw.placa,
+  };
+}
+
+type RawResumoCultura = {
+  cultura: 'arroz' | 'soja';
+  total_sacas: number;
+  unidade: string;
+};
+
+function mapResumo(raw: RawResumoCultura): ResumoCultura {
+  return {
+    cultura: raw.cultura,
+    totalSacas: raw.total_sacas,
+    unidade: raw.unidade,
+  };
+}
+
+type RawGerarPdfJob = {
+  job_id: string;
+  status: GerarPdfJob['status'];
+  arquivo_pdf_url?: string;
+};
+
+function mapPdfJob(raw: RawGerarPdfJob): GerarPdfJob {
+  return {
+    jobId: raw.job_id,
+    status: raw.status,
+    arquivoPdfUrl: raw.arquivo_pdf_url,
+  };
+}
 
 function buildQuery(params: Record<string, string | number | undefined>): string {
   const search = new URLSearchParams();
@@ -25,8 +78,11 @@ function buildQuery(params: Record<string, string | number | undefined>): string
 export async function getResumoCargas(ano: number, token: string): Promise<ResumoCultura[]> {
   try {
     const query = buildQuery({ ano });
-    const response = await api.get<{ data: ResumoCultura[] }>(`/cargas/resumo${query}`, token);
-    return response.data;
+    const response = await api.get<{ data: RawResumoCultura[] }>(
+      `/cargas/resumo${query}`,
+      token
+    );
+    return response.data.map(mapResumo);
   } catch (error) {
     const apiError = error as ApiError;
     if (apiError.message === 'API_URL_NOT_CONFIGURED') {
@@ -47,9 +103,17 @@ export async function listCargas(
       ano: filtros.ano,
       inscricao_estadual: filtros.inscricaoEstadual,
       cultura: filtros.cultura,
-      data: filtros.data,
+      data_inicio: filtros.dataInicio,
+      data_fim: filtros.dataFim,
     });
-    return await api.get<CargasResponse>(`/cargas${query}`, token);
+    const response = await api.get<{ data: RawCarga[]; pagination: RawPagination }>(
+      `/cargas${query}`,
+      token
+    );
+    return {
+      data: response.data.map(mapCarga),
+      pagination: mapPagination(response.pagination),
+    };
   } catch (error) {
     const apiError = error as ApiError;
     if (apiError.message === 'API_URL_NOT_CONFIGURED') {
@@ -62,7 +126,10 @@ export async function listCargas(
 // Inicia a geração assíncrona do PDF combinando as cargas selecionadas.
 export async function gerarPdfCargas(cargaIds: string[], token: string): Promise<GerarPdfJob> {
   try {
-    return await api.post<GerarPdfJob>('/relatorios/gerar-pdf', { carga_ids: cargaIds });
+    const response = await api.post<RawGerarPdfJob>('/relatorios/gerar-pdf', {
+      carga_ids: cargaIds,
+    });
+    return mapPdfJob(response);
   } catch (error) {
     const apiError = error as ApiError;
     if (apiError.message === 'API_URL_NOT_CONFIGURED') {
@@ -75,7 +142,8 @@ export async function gerarPdfCargas(cargaIds: string[], token: string): Promise
 // Consulta o status do job de geração de PDF (polling).
 export async function consultarJobPdf(jobId: string, token: string): Promise<GerarPdfJob> {
   try {
-    return await api.get<GerarPdfJob>(`/relatorios/gerar-pdf/${jobId}`, token);
+    const response = await api.get<RawGerarPdfJob>(`/relatorios/gerar-pdf/${jobId}`, token);
+    return mapPdfJob(response);
   } catch (error) {
     const apiError = error as ApiError;
     if (apiError.message === 'API_URL_NOT_CONFIGURED') {
@@ -137,7 +205,8 @@ async function mockListCargas(filtros: CargasFiltros): Promise<CargasResponse> {
     if (filtros.inscricaoEstadual && carga.inscricaoEstadual !== filtros.inscricaoEstadual) {
       return false;
     }
-    if (filtros.data && carga.data !== filtros.data) return false;
+    if (filtros.dataInicio && carga.data < filtros.dataInicio) return false;
+    if (filtros.dataFim && carga.data > filtros.dataFim) return false;
     return true;
   });
 

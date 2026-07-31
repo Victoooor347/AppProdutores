@@ -60,7 +60,7 @@ export default function ContraNotas() {
 
   return (
     <View style={style.screenCN}>
-      <AppHeader title="App Produtor" />
+      <AppHeader title="Dickow Produtores" />
 
       <ScrollView
         contentContainerStyle={style.contentCN}

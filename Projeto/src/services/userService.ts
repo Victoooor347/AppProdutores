@@ -1,5 +1,5 @@
 import { api, ApiError } from './api';
-import { UserProfile, UserProfileUpdate } from '../types/user';
+import { UserProfile, UserProfileUpdate } from '../types/userprofile';
 
 export async function getProfile(token: string): Promise<UserProfile> {
   try {

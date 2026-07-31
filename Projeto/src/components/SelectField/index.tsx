@@ -43,7 +43,10 @@ export default function SelectField<T extends string>({
             <Text style={styles.sheetTitle}>{label}</Text>
             <FlatList
               data={options}
-              keyExtractor={(item) => item.value}
+              // Fallback pro índice se algum item vier com value vazio/undefined
+              // (dado incompleto vindo da API) — sem isso, o FlatList quebra
+              // silenciosamente com "Each child should have a unique key".
+              keyExtractor={(item, index) => (item.value ? String(item.value) : `option-${index}`)}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.option}
