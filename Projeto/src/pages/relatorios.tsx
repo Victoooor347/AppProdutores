@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
-  StyleSheet,
   Alert,
   Linking,
 } from 'react-native';
@@ -24,6 +23,7 @@ import { themes } from '../global/themes';
 import AppHeader from '../components/AppHeader';
 import SelectField from '../components/SelectField';
 import DateRangeField from '../components/DateRangeField';
+import { style } from '../global/styles';
 
 const ANO_ATUAL = new Date().getFullYear();
 const ANOS = Array.from({ length: 5 }, (_, i) => String(ANO_ATUAL - i));
@@ -170,11 +170,11 @@ export default function Relatorios() {
   }
 
   return (
-    <View style={styles.screen}>
-      <AppHeader title="Dickow Produtores" />
+    <View style={style.screenRel}>
+      <AppHeader title="App Produtor" />
 
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={style.contentRel}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -183,8 +183,8 @@ export default function Relatorios() {
           />
         }
       >
-        <View style={styles.titleRow}>
-          <Text style={styles.title}>Relatório de Safra</Text>
+        <View style={style.titleRowRel}>
+          <Text style={style.titleRel}>Relatório de Safra</Text>
           <SelectField
             label="Ano"
             value={ano}
@@ -194,37 +194,37 @@ export default function Relatorios() {
         </View>
 
         {isLoading ? (
-          <View style={styles.centered}>
+          <View style={style.centeredRel}>
             <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
           </View>
         ) : errorMessage ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
+          <View style={style.errorBoxRel}>
+            <Text style={style.errorTextRel}>{errorMessage}</Text>
           </View>
         ) : (
           <>
-            <View style={styles.resumoRow}>
-              <View style={styles.resumoCard}>
-                <Text style={styles.resumoLabel}>Total entregue - Arroz</Text>
-                <Text style={styles.resumoValue}>
+            <View style={style.resumoRowRel}>
+              <View style={style.resumoCardRel}>
+                <Text style={style.resumoLabelRel}>Total entregue - Arroz</Text>
+                <Text style={style.resumoValueRel}>
                   {resumoDoCultura('arroz')?.totalSacas ?? 0}{' '}
-                  <Text style={styles.resumoUnidade}>
+                  <Text style={style.resumoUnidadeRel}>
                     {resumoDoCultura('arroz')?.unidade ?? 'sc'}
                   </Text>
                 </Text>
               </View>
-              <View style={styles.resumoCard}>
-                <Text style={styles.resumoLabel}>Total entregue - Soja</Text>
-                <Text style={styles.resumoValue}>
+              <View style={style.resumoCardRel}>
+                <Text style={style.resumoLabelRel}>Total entregue - Soja</Text>
+                <Text style={style.resumoValueRel}>
                   {resumoDoCultura('soja')?.totalSacas ?? 0}{' '}
-                  <Text style={styles.resumoUnidade}>
+                  <Text style={style.resumoUnidadeRel}>
                     {resumoDoCultura('soja')?.unidade ?? 'sc'}
                   </Text>
                 </Text>
               </View>
             </View>
 
-            <View style={styles.filterBar}>
+            <View style={style.filterBarRel}>
               <SelectField
                 label="IE"
                 value={inscricaoEstadual}
@@ -238,8 +238,8 @@ export default function Relatorios() {
         )}
 
         {!isLoading && !errorMessage && cargas.length === 0 && (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>Nenhuma carga encontrada para esse filtro.</Text>
+          <View style={style.emptyBoxRel}>
+            <Text style={style.emptyTextRel}>Nenhuma carga encontrada para esse filtro.</Text>
           </View>
         )}
 
@@ -250,29 +250,31 @@ export default function Relatorios() {
             return (
               <TouchableOpacity
                 key={carga.id}
-                style={styles.cargaRow}
+                style={style.cargaRowRel}
                 onPress={() => toggleSelecao(carga.id)}
                 activeOpacity={0.7}
               >
-                <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                <View style={[style.checkboxRel, isSelected && style.checkboxSelectedRel]}>
                   {isSelected && <Ionicons name="checkmark" size={14} color={themes.colors.branco} />}
                 </View>
-                <Text style={[styles.cargaCell, styles.cargaCellData]}>{formatDate(carga.data)}</Text>
-                <Text style={[styles.cargaCell, styles.cargaCellCultura]}>
+                <Text style={[style.cargaCellRel, style.cargaCellDataRel]}>{formatDate(carga.data)}</Text>
+                <Text style={[style.cargaCellRel, style.cargaCellCulturaRel]}>
                   {carga.cultura === 'arroz' ? 'Arroz' : 'Soja'}
                 </Text>
-                <Text style={[styles.cargaCell, styles.cargaCellSacas]}>
+                <Text style={[style.cargaCellRel, style.cargaCellSacasRel]}>
                   {carga.quantidade} {carga.unidade}
                 </Text>
-                <Text style={[styles.cargaCell, styles.cargaCellPlaca]}>{carga.placa}</Text>
+                <Text style={[style.cargaCellRel, style.cargaCellPlacaRel]}>{carga.placa}</Text>
               </TouchableOpacity>
             );
           })}
+      </ScrollView>
 
+      <View style={style.footerRel}>
         <TouchableOpacity
           style={[
-            styles.pdfButton,
-            (selectedIds.size === 0 || isGeneratingPdf) && styles.pdfButtonDisabled,
+            style.pdfButtonRel,
+            (selectedIds.size === 0 || isGeneratingPdf) && style.pdfButtonDisabledRel,
           ]}
           disabled={selectedIds.size === 0 || isGeneratingPdf}
           onPress={handleGerarPdf}
@@ -280,144 +282,13 @@ export default function Relatorios() {
           {isGeneratingPdf ? (
             <ActivityIndicator color={themes.colors.preto} size="small" />
           ) : (
-            <Text style={styles.pdfButtonText}>
+            <Text style={style.pdfButtonTextRel}>
               Gerar PDF das cargas selecionadas
               {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
             </Text>
           )}
         </TouchableOpacity>
-      </ScrollView>
+      </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: themes.colors.branco,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: themes.colors.verde,
-  },
-  resumoRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
-  },
-  resumoCard: {
-    flex: 1,
-    backgroundColor: themes.colors.cinzaBg,
-    borderRadius: 10,
-    padding: 12,
-  },
-  resumoLabel: {
-    fontSize: 12,
-    color: themes.colors.cinzaTexto,
-    marginBottom: 6,
-  },
-  resumoValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: themes.colors.preto,
-  },
-  resumoUnidade: {
-    fontSize: 12,
-    fontWeight: '400',
-    color: themes.colors.cinzaTexto,
-  },
-  filterBar: {
-    flexDirection: 'row',
-    gap: 8,
-    backgroundColor: themes.colors.verde,
-    borderRadius: 10,
-    padding: 8,
-    marginBottom: 16,
-  },
-  centered: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  cargaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: themes.colors.cinzaBg,
-    borderRadius: 10,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    marginBottom: 8,
-    gap: 8,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: themes.colors.cinzaMedio,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxSelected: {
-    backgroundColor: themes.colors.verdeMedio,
-    borderColor: themes.colors.verdeMedio,
-  },
-  cargaCell: {
-    fontSize: 13,
-    color: themes.colors.preto,
-    flex: 1,
-  },
-  cargaCellData: {
-    flex: 1.1,
-  },
-  cargaCellCultura: {
-    flex: 0.9,
-  },
-  cargaCellSacas: {
-    flex: 1,
-  },
-  cargaCellPlaca: {
-    flex: 1,
-    textAlign: 'right',
-  },
-  pdfButton: {
-    backgroundColor: themes.colors.cinzaBg,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  pdfButtonDisabled: {
-    opacity: 0.5,
-  },
-  pdfButtonText: {
-    color: themes.colors.preto,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  errorBox: {
-    backgroundColor: themes.colors.erroBg,
-    borderRadius: 12,
-    padding: 16,
-  },
-  errorText: {
-    color: themes.colors.erro,
-  },
-  emptyBox: {
-    padding: 24,
-    alignItems: 'center',
-  },
-  emptyText: {
-    color: themes.colors.cinzaMedio,
-  },
-});

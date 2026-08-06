@@ -390,6 +390,13 @@ export const style = StyleSheet.create({
     emptyTextRel: {
       color: themes.colors.cinzaMedio,
     },
+    footerRel: {
+      padding: 20,
+      paddingTop: 12,
+      backgroundColor: themes.colors.branco,
+      borderTopWidth: 1,
+      borderTopColor: themes.colors.cinzaBorda,
+},
 
 
 
