@@ -1,7 +1,5 @@
-// Wrapper simples em cima do fetch nativo.
-// Quando a API estiver pronta, defina EXPO_PUBLIC_API_URL no .env
-// (ver .env.example) e todas as chamadas passam a usá-la automaticamente.
-
+// Este arquivo define a função `request` que é responsável por fazer requisições HTTP para a API do backend. 
+// Ele também exporta um objeto `api` com métodos para realizar requisições POST, PUT e GET de forma simplificada.
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 const TIMEOUT_MS = 10000;
 
@@ -10,12 +8,14 @@ export type ApiError = {
   status?: number;
 };
 
+// A função `request` é uma função genérica que recebe um caminho de URL e opções de requisição, 
+// e retorna uma Promise com o tipo de dado esperado.
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!API_URL) {
-    // Erro específico para a authService saber que deve cair no mock.
     throw { message: 'API_URL_NOT_CONFIGURED' } as ApiError;
   }
 
+  // Cria um controlador de abortamento para permitir cancelar a requisição se ela demorar mais do que o tempo limite definido.
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -50,6 +50,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 }
 
+// O objeto `api` exportado fornece métodos convenientes para fazer requisições POST, PUT e GET,
+// encapsulando a função `request` e adicionando cabeçalhos de autorização quando necessário.
 export const api = {
   post: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),

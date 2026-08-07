@@ -1,3 +1,6 @@
+# este arquivo lista arquivos e pastas que não devem ser versionados pelo Git, 
+# como dependências, arquivos de build, chaves privadas e arquivos de configuração local.
+
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies

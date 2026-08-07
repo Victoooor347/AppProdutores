@@ -1,3 +1,4 @@
+// Tipo que representa uma contra nota.
 export type ContraNota = {
   id: string;
   numero: string;
@@ -5,11 +6,13 @@ export type ContraNota = {
   arquivoPdfUrl: string;
 };
 
+// Tipo que representa os filtros possíveis para listagem de contra notas.
 export type ContraNotasFiltros = {
   page?: number;
   perPage?: number;
 };
 
+// Tipo que representa a resposta da listagem de contra notas.
 export type ContraNotasResponse = {
   data: ContraNota[];
   pagination: {

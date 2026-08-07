@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
-import { Calendar, DateData } from 'react-native-calendars';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { Calendar, DateData } from 'react-native-calendars'; // Importa o componente Calendar do pacote react-native-calendars para exibir o calendário na tela
 import { Ionicons } from '@expo/vector-icons';
 import { themes } from '../../global/themes';
-import { formatDate } from '../../utils/format';
-import { buildMarkedDates } from '../../utils/daterange';
+import { formatDate } from '../../utils/format'; // Importa a função formatDate do arquivo utils/format para formatar as datas exibidas no campo de seleção de período
+import { buildMarkedDates } from '../../utils/daterange'; // Importa a função buildMarkedDates do arquivo utils/daterange para construir os dias marcados no calendário com base no período selecionado
+import { style } from '../../global/styles'; // Importa os estilos do arquivo styles.ts para estilizar o componente DateRangeField
 
 type Range = {
   dataInicio?: string; // ISO "AAAA-MM-DD"
@@ -16,17 +17,20 @@ type Props = {
   onChange: (range: Range) => void;
 };
 
+// Componente de campo de seleção de período, exibindo um calendário para o usuário escolher a data inicial e final.
 export default function DateRangeField({ value, onChange }: Props) {
+  // Estado local para controlar se o modal do calendário está aberto ou fechado
   const [isOpen, setIsOpen] = useState(false);
-  // Estado temporário enquanto o usuário ainda está escolhendo no calendário
-  // — só vira o filtro de verdade quando aperta "Aplicar".
+  // Estado local para armazenar o período selecionado temporariamente enquanto o modal está aberto
   const [rascunho, setRascunho] = useState<Range>(value);
 
+  // Abre o modal do calendário e inicializa o rascunho com o valor atual do campo
   function abrir() {
     setRascunho(value);
     setIsOpen(true);
   }
 
+  //
   function handleDayPress(day: DateData) {
     const { dataInicio, dataFim } = rascunho;
 
@@ -45,17 +49,20 @@ export default function DateRangeField({ value, onChange }: Props) {
     setRascunho({ dataInicio, dataFim: day.dateString });
   }
 
+  // Aplica o período selecionado e fecha o modal
   function aplicar() {
     onChange(rascunho);
     setIsOpen(false);
   }
 
+  // Limpa o período selecionado e fecha o modal
   function limpar() {
     setRascunho({});
     onChange({});
     setIsOpen(false);
   }
 
+  // Determina o texto exibido no campo com base no período selecionado
   const label =
     value.dataInicio && value.dataFim
       ? `${formatDate(value.dataInicio)} - ${formatDate(value.dataFim)}`
@@ -65,18 +72,18 @@ export default function DateRangeField({ value, onChange }: Props) {
 
   return (
     <>
-      <TouchableOpacity style={styles.field} onPress={abrir}>
-        <Text style={styles.fieldText} numberOfLines={1}>
+      <TouchableOpacity style={style.fieldCal} onPress={abrir}>
+        <Text style={style.fieldTextCal} numberOfLines={1}>
           {label}
         </Text>
         <Ionicons name="calendar-outline" size={18} color={themes.colors.cinzaTexto} />
       </TouchableOpacity>
 
       <Modal visible={isOpen} transparent animationType="fade" onRequestClose={() => setIsOpen(false)}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setIsOpen(false)}>
-          <TouchableOpacity activeOpacity={1} style={styles.sheet}>
-            <Text style={styles.sheetTitle}>Selecione o período</Text>
-            <Text style={styles.sheetSubtitle}>
+        <TouchableOpacity style={style.backdropCal} activeOpacity={1} onPress={() => setIsOpen(false)}>
+          <TouchableOpacity activeOpacity={1} style={style.sheetCal}>
+            <Text style={style.sheetTitleCal}>Selecione o período</Text>
+            <Text style={style.sheetSubtitleCal}>
               Toque no dia inicial e depois no dia final
             </Text>
 
@@ -94,16 +101,16 @@ export default function DateRangeField({ value, onChange }: Props) {
               }}
             />
 
-            <View style={styles.actions}>
-              <TouchableOpacity style={styles.clearButton} onPress={limpar}>
-                <Text style={styles.clearButtonText}>Limpar</Text>
+            <View style={style.actionsCal}>
+              <TouchableOpacity style={style.clearButtonCal} onPress={limpar}>
+                <Text style={style.clearButtonTextCal}>Limpar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.applyButton, !rascunho.dataInicio && styles.applyButtonDisabled]}
+                style={[style.applyButtonCal, !rascunho.dataInicio && style.applyButtonDisabledCal]}
                 disabled={!rascunho.dataInicio}
                 onPress={aplicar}
               >
-                <Text style={styles.applyButtonText}>Aplicar</Text>
+                <Text style={style.applyButtonTextCal}>Aplicar</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -112,70 +119,3 @@ export default function DateRangeField({ value, onChange }: Props) {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  field: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: themes.colors.branco,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  fieldText: {
-    color: themes.colors.preto,
-    fontSize: 13,
-    flexShrink: 1,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  sheet: {
-    backgroundColor: themes.colors.branco,
-    borderRadius: 16,
-    padding: 16,
-  },
-  sheetTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: themes.colors.preto,
-    marginBottom: 4,
-  },
-  sheetSubtitle: {
-    fontSize: 12,
-    color: themes.colors.cinzaTexto,
-    marginBottom: 8,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 12,
-    marginTop: 12,
-  },
-  clearButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-  },
-  clearButtonText: {
-    color: themes.colors.cinzaTexto,
-    fontWeight: '600',
-  },
-  applyButton: {
-    backgroundColor: themes.colors.verdeMedio,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
-  applyButtonDisabled: {
-    opacity: 0.5,
-  },
-  applyButtonText: {
-    color: themes.colors.branco,
-    fontWeight: '700',
-  },
-});

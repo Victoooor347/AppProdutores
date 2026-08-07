@@ -1,19 +1,14 @@
-import { api, ApiError } from './api';
+import { api, ApiError } from './api'; // Importa a instância da API e o tipo ApiError do arquivo api.ts, que são usados para fazer requisições HTTP e tratar erros da API.
 import {
-  Carga,
+  Carga, 
   CargasFiltros,
   CargasResponse,
   GerarPdfJob,
   ResumoCultura,
-} from '../types/cargas';
-import { mapPagination, RawPagination } from '../utils/apiMappers';
+} from '../types/cargas'; // Importa os tipos Carga, CargasFiltros, CargasResponse, GerarPdfJob e ResumoCultura que definem a estrutura das cargas, os filtros possíveis para listagem, a resposta paginada da listagem de cargas, o job de geração de PDF e o resumo de cultura.
+import { mapPagination, RawPagination } from '../utils/apiMappers'; // Importa a função mapPagination e o tipo RawPagination do arquivo apiMappers.ts, que são usados para mapear a paginação da resposta da API para o formato esperado pelo frontend.
 
-// Mesma ideia do authService: se EXPO_PUBLIC_API_URL não estiver configurada,
-// cai automaticamente no mock — assim dá pra montar a tela de Relatório de
-// Safra sem esperar o backend.
-
-// A API responde em snake_case (ver contrato); esses tipos "Raw*" e as
-// funções map* abaixo traduzem pro camelCase que o resto do app usa.
+// Tipo que representa os dados brutos da carga recebidos da API.
 type RawCarga = {
   id: string;
   cultura: 'arroz' | 'soja';
@@ -24,6 +19,7 @@ type RawCarga = {
   placa: string;
 };
 
+// Função que mapeia os dados brutos da carga recebidos da API para o formato esperado pelo frontend.
 function mapCarga(raw: RawCarga): Carga {
   return {
     id: raw.id,
@@ -36,12 +32,14 @@ function mapCarga(raw: RawCarga): Carga {
   };
 }
 
+// Tipo que representa os dados brutos do resumo de cultura recebidos da API.
 type RawResumoCultura = {
   cultura: 'arroz' | 'soja';
   total_sacas: number;
   unidade: string;
 };
 
+// Função que mapeia os dados brutos do resumo de cultura recebidos da API para o formato esperado pelo frontend.
 function mapResumo(raw: RawResumoCultura): ResumoCultura {
   return {
     cultura: raw.cultura,
@@ -50,12 +48,14 @@ function mapResumo(raw: RawResumoCultura): ResumoCultura {
   };
 }
 
+// Tipo que representa os dados brutos do job de geração de PDF recebidos da API.
 type RawGerarPdfJob = {
   job_id: string;
   status: GerarPdfJob['status'];
   arquivo_pdf_url?: string;
 };
 
+// Função que mapeia os dados brutos do job de geração de PDF recebidos da API para o formato esperado pelo frontend.
 function mapPdfJob(raw: RawGerarPdfJob): GerarPdfJob {
   return {
     jobId: raw.job_id,
@@ -64,6 +64,7 @@ function mapPdfJob(raw: RawGerarPdfJob): GerarPdfJob {
   };
 }
 
+// Função auxiliar que constrói uma query string a partir de um objeto de parâmetros, ignorando valores undefined, null ou vazios.
 function buildQuery(params: Record<string, string | number | undefined>): string {
   const search = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -75,6 +76,7 @@ function buildQuery(params: Record<string, string | number | undefined>): string
   return query ? `?${query}` : '';
 }
 
+// Função que busca o resumo de cargas por ano, retornando uma lista de ResumoCultura.
 export async function getResumoCargas(ano: number, token: string): Promise<ResumoCultura[]> {
   try {
     const query = buildQuery({ ano });
@@ -85,13 +87,14 @@ export async function getResumoCargas(ano: number, token: string): Promise<Resum
     return response.data.map(mapResumo);
   } catch (error) {
     const apiError = error as ApiError;
-    if (apiError.message === 'API_URL_NOT_CONFIGURED') {
-      return mockResumoCargas();
-    }
+    // if (apiError.message === 'API_URL_NOT_CONFIGURED') {
+    //   return mockResumoCargas();
+    // }
     throw error;
   }
 }
 
+// Função que lista as cargas com base nos filtros fornecidos, retornando uma resposta paginada.
 export async function listCargas(
   filtros: CargasFiltros,
   token: string
@@ -116,9 +119,9 @@ export async function listCargas(
     };
   } catch (error) {
     const apiError = error as ApiError;
-    if (apiError.message === 'API_URL_NOT_CONFIGURED') {
-      return mockListCargas(filtros);
-    }
+    // if (apiError.message === 'API_URL_NOT_CONFIGURED') {
+    //   return mockListCargas(filtros);
+    // }
     throw error;
   }
 }
@@ -132,9 +135,9 @@ export async function gerarPdfCargas(cargaIds: string[], token: string): Promise
     return mapPdfJob(response);
   } catch (error) {
     const apiError = error as ApiError;
-    if (apiError.message === 'API_URL_NOT_CONFIGURED') {
-      return mockGerarPdfCargas();
-    }
+    // if (apiError.message === 'API_URL_NOT_CONFIGURED') {
+    //   return mockGerarPdfCargas();
+    // }
     throw error;
   }
 }
@@ -146,92 +149,92 @@ export async function consultarJobPdf(jobId: string, token: string): Promise<Ger
     return mapPdfJob(response);
   } catch (error) {
     const apiError = error as ApiError;
-    if (apiError.message === 'API_URL_NOT_CONFIGURED') {
-      return mockConsultarJobPdf(jobId);
-    }
+    // if (apiError.message === 'API_URL_NOT_CONFIGURED') {
+    //   return mockConsultarJobPdf(jobId);
+    // }
     throw error;
   }
 }
 
-// ---- Mocks (usados enquanto a API não existe) ----
+// // ---- Mocks (usados enquanto a API não existe) ----
 
-async function delay(ms = 500) {
-  await new Promise((resolve) => setTimeout(resolve, ms));
-}
+// async function delay(ms = 500) {
+//   await new Promise((resolve) => setTimeout(resolve, ms));
+// }
 
-async function mockResumoCargas(): Promise<ResumoCultura[]> {
-  await delay();
-  return [
-    { cultura: 'arroz', totalSacas: 2175, unidade: 'sc' },
-    { cultura: 'soja', totalSacas: 2175, unidade: 'sc' },
-  ];
-}
+// async function mockResumoCargas(): Promise<ResumoCultura[]> {
+//   await delay();
+//   return [
+//     { cultura: 'arroz', totalSacas: 2175, unidade: 'sc' },
+//     { cultura: 'soja', totalSacas: 2175, unidade: 'sc' },
+//   ];
+// }
 
-async function mockListCargas(filtros: CargasFiltros): Promise<CargasResponse> {
-  await delay();
+// async function mockListCargas(filtros: CargasFiltros): Promise<CargasResponse> {
+//   await delay();
 
-  const todas: Carga[] = [
-    {
-      id: 'carga_001',
-      cultura: 'arroz',
-      data: '2026-07-20',
-      inscricaoEstadual: '123456789',
-      quantidade: 500,
-      unidade: 'sc',
-      placa: 'ABC1D23',
-    },
-    {
-      id: 'carga_002',
-      cultura: 'soja',
-      data: '2026-07-22',
-      inscricaoEstadual: '123456789',
-      quantidade: 800,
-      unidade: 'sc',
-      placa: 'XYZ9E87',
-    },
-    {
-      id: 'carga_003',
-      cultura: 'arroz',
-      data: '2026-07-25',
-      inscricaoEstadual: '987654321',
-      quantidade: 300,
-      unidade: 'sc',
-      placa: 'JKL4F56',
-    },
-  ];
+//   const todas: Carga[] = [
+//     {
+//       id: 'carga_001',
+//       cultura: 'arroz',
+//       data: '2026-07-20',
+//       inscricaoEstadual: '123456789',
+//       quantidade: 500,
+//       unidade: 'sc',
+//       placa: 'ABC1D23',
+//     },
+//     {
+//       id: 'carga_002',
+//       cultura: 'soja',
+//       data: '2026-07-22',
+//       inscricaoEstadual: '123456789',
+//       quantidade: 800,
+//       unidade: 'sc',
+//       placa: 'XYZ9E87',
+//     },
+//     {
+//       id: 'carga_003',
+//       cultura: 'arroz',
+//       data: '2026-07-25',
+//       inscricaoEstadual: '987654321',
+//       quantidade: 300,
+//       unidade: 'sc',
+//       placa: 'JKL4F56',
+//     },
+//   ];
 
-  const filtradas = todas.filter((carga) => {
-    if (filtros.cultura && carga.cultura !== filtros.cultura) return false;
-    if (filtros.inscricaoEstadual && carga.inscricaoEstadual !== filtros.inscricaoEstadual) {
-      return false;
-    }
-    if (filtros.dataInicio && carga.data < filtros.dataInicio) return false;
-    if (filtros.dataFim && carga.data > filtros.dataFim) return false;
-    return true;
-  });
+//   const filtradas = todas.filter((carga) => {
+//     if (filtros.cultura && carga.cultura !== filtros.cultura) return false;
+//     if (filtros.inscricaoEstadual && carga.inscricaoEstadual !== filtros.inscricaoEstadual) {
+//       return false;
+//     }
+//     if (filtros.dataInicio && carga.data < filtros.dataInicio) return false;
+//     if (filtros.dataFim && carga.data > filtros.dataFim) return false;
+//     return true;
+//   });
 
-  return {
-    data: filtradas,
-    pagination: {
-      page: filtros.page ?? 1,
-      perPage: filtros.perPage ?? 20,
-      totalItems: filtradas.length,
-      totalPages: 1,
-    },
-  };
-}
+//   return {
+//     data: filtradas,
+//     pagination: {
+//       page: filtros.page ?? 1,
+//       perPage: filtros.perPage ?? 20,
+//       totalItems: filtradas.length,
+//       totalPages: 1,
+//     },
+//   };
+// }
 
-async function mockGerarPdfCargas(): Promise<GerarPdfJob> {
-  await delay(300);
-  return { jobId: 'job_mock_123', status: 'processando' };
-}
+// async function mockGerarPdfCargas(): Promise<GerarPdfJob> {
+//   await delay(300);
+//   return { jobId: 'job_mock_123', status: 'processando' };
+// }
 
-async function mockConsultarJobPdf(jobId: string): Promise<GerarPdfJob> {
-  await delay(300);
-  // No mock, o job já nasce pronto na segunda consulta pra simular o polling.
-  return {
-    jobId,
-    status: 'pronto',
-    arquivoPdfUrl: 'https://exemplo.com/mock/relatorio-cargas.pdf',
-  };
-}
+// async function mockConsultarJobPdf(jobId: string): Promise<GerarPdfJob> {
+//   await delay(300);
+//   // No mock, o job já nasce pronto na segunda consulta pra simular o polling.
+//   return {
+//     jobId,
+//     status: 'pronto',
+//     arquivoPdfUrl: 'https://exemplo.com/mock/relatorio-cargas.pdf',
+//   };
+// }

@@ -6,11 +6,11 @@ import BottomRoutes from './bottom.routes';
 import { useAuth } from '../context/authContext';
 
 export default function Routes() {
+  // Cria o Stack Navigator para gerenciar a navegação entre as telas de login e as rotas principais da aplicação
   const Stack = createStackNavigator();
   const { isAuthenticated, isLoading } = useAuth();
 
-  // Enquanto verificamos se já existe uma sessão salva no dispositivo,
-  // evitamos "piscar" a tela de login antes de ir para o app.
+  // Exibe um indicador de carregamento enquanto o estado de autenticação está sendo verificado
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

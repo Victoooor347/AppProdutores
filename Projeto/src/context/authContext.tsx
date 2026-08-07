@@ -4,10 +4,10 @@ import { AuthContextData, User } from '../types/auth';
 import { loginRequest } from '../services/authService';
 import { ApiError } from '../services/api';
 
-// Chave usada para guardar a sessão no armazenamento seguro do dispositivo.
-// Nunca use AsyncStorage puro para dados sensíveis como CPF/token.
+// Chave usada para armazenar a sessão do usuário no SecureStore do dispositivo
 const SESSION_KEY = 'AppProdutores.session';
 
+// Cria um contexto de autenticação para gerenciar o estado do usuário e do token de autenticação na aplicação.
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
 type StoredSession = {
@@ -15,17 +15,18 @@ type StoredSession = {
   token: string;
 };
 
+// Componente provedor de autenticação, responsável por fornecer o contexto de autenticação para os componentes filhos.
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // Estado local para armazenar o usuário autenticado, o token de autenticação e o estado de carregamento da sessão.
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  // isLoading representa o "boot" do app: enquanto verificamos se já existe
-  // uma sessão salva no dispositivo, não decidimos ainda para qual tela ir.
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadStoredSession();
   }, []);
 
+  // Carrega a sessão salva no SecureStore do dispositivo, se houver, e atualiza o estado do usuário e do token.
   async function loadStoredSession() {
     try {
       const raw = await SecureStore.getItemAsync(SESSION_KEY);
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Função para realizar o login do usuário, enviando as credenciais para a API e armazenando a sessão no SecureStore.
   async function signIn(cpf: string, password: string) {
     if (!cpf || !password) {
       throw new Error('Por favor, preencha todos os campos.');
@@ -62,6 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Função para realizar o logout do usuário, removendo a sessão do SecureStore e limpando o estado do usuário e do token.
   async function signOut() {
     await SecureStore.deleteItemAsync(SESSION_KEY);
     setUser(null);
@@ -84,6 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Hook personalizado para acessar o contexto de autenticação em outros componentes da aplicação.
 export function useAuth() {
   const context = useContext(AuthContext);
 

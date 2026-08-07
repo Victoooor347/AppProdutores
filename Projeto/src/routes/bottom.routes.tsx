@@ -5,6 +5,8 @@ import ContraNotas from "../pages/contraNotas";
 import User from "../pages/users";
 import CustomTabBar from "../components/CustomTabBar";
 
+// Componente que define as rotas de navegação inferior (Bottom Tab Navigator) da aplicação,
+// incluindo as telas Dashboard, Relatórios, ContraNotas e User.
 export default function BottomRoutes() {
     const Tab = createBottomTabNavigator();
 

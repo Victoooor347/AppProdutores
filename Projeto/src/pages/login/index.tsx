@@ -1,23 +1,38 @@
-import React, { useState } from "react";
-import { Text, View, Image, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import React, { useState } from "react"; // Importa o React e o hook useState para gerenciar o estado do componente
+import { 
+    Text, 
+    View, 
+    Image, 
+    TextInput, // Importa componentes do React Native para criar a interface do usuário
+    TouchableOpacity, // Componente que permite criar botões e áreas clicáveis
+    Alert, // Componente para exibir alertas e mensagens de erro
+    ActivityIndicator // Componente que exibe um indicador de carregamento (spinner)
+} from 'react-native';
 import { style } from '../../global/styles';
 import logo from '../../assets/logo.png';
-import { useAuth } from "../../context/authContext";
-import { formatCpf, isValidCpf, isValidPassword, MIN_PASSWORD_LENGTH } from "../../utils/validators";
+import { useAuth } from "../../context/authContext"; // Importa o hook useAuth do contexto de autenticação para acessar funções e estados relacionados à autenticação
+import { 
+    formatCpf, // Função para formatar o CPF digitado pelo usuário
+    isValidCpf, // Função para validar se o CPF digitado é válido
+    isValidPassword, // Função para validar se a senha digitada atende aos critérios de segurança
+    MIN_PASSWORD_LENGTH // Constante que define o comprimento mínimo da senha
+} from "../../utils/validators";
+
 
 export default function Login() {
 
+    // Importa a função signIn do contexto de autenticação para realizar o login do usuário
     const { signIn } = useAuth();
 
+    // Estado local para armazenar o CPF, a senha e o estado de carregamento do login
     const [cpf, setCpf] = useState('');
     const [password, setPassword] = useState('');
     const [Loading, setLoading] = useState(false);
 
-    // Atalho só para desenvolvimento: digitar "V" nos dois campos usa o
-    // login mock (ver authService.ts) sem precisar de um CPF válido.
-    // Em produção, essa combinação nunca vai bater com uma senha real.
-    const isDevShortcut = __DEV__ && cpf.toUpperCase() === 'V' && password === 'V';
+    // // Verifica se o usuário digitou o atalho de desenvolvimento (V/V) para permitir login rápido durante o desenvolvimento
+    // const isDevShortcut = __DEV__ && cpf.toUpperCase() === 'V' && password === 'V';
 
+    // Função para lidar com a mudança no campo de CPF, formatando o valor digitado e permitindo o atalho de desenvolvimento
     function handleCpfChange(text: string) {
         // Permite digitar o atalho de dev sem a máscara apagar o "V".
         if (__DEV__ && text.toUpperCase() === 'V') {
@@ -27,8 +42,9 @@ export default function Login() {
         setCpf(formatCpf(text));
     }
 
+    // Função para validar o formulário de login, verificando se os campos estão preenchidos e se os valores são válidos
     function validateForm(): string | null {
-        if (isDevShortcut) return null;
+        // if (isDevShortcut) return null;
 
         if (!cpf || !password) {
             return 'Por favor, preencha todos os campos.';
@@ -42,6 +58,7 @@ export default function Login() {
         return null;
     }
 
+    // Função assíncrona para lidar com o processo de login, validando o formulário e chamando a função signIn do contexto de autenticação
     async function handleLogin() {
         const validationError = validateForm();
         if (validationError) {

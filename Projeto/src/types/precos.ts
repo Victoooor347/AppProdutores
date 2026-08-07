@@ -1,5 +1,7 @@
+// Tipo que representa uma commodity.
 export type Commodity = 'arroz' | 'soja';
 
+// Tipo que representa os dados do preço do dia de uma commodity.
 export type PrecoDia = {
   commodity: Commodity;
   nomeExibicao: string;

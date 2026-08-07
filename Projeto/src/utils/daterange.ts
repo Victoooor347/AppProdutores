@@ -13,10 +13,12 @@ export function buildMarkedDates(
     };
   }
 
+  // Gera um objeto com todas as datas entre start e end, marcadas com a cor fornecida.
   const marked: Record<string, any> = {};
   const current = new Date(`${start}T00:00:00`);
   const endDate = new Date(`${end}T00:00:00`);
 
+  // Marca cada dia do período como startingDay, endingDay ou apenas colorido.
   while (current <= endDate) {
     const iso = current.toISOString().slice(0, 10);
     marked[iso] = {

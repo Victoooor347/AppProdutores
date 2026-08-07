@@ -1,3 +1,4 @@
+// Validações de campos de formulário e outros dados do usuário.
 export const MIN_PASSWORD_LENGTH = 6;
 
 // Aplica a máscara 000.000.000-00 enquanto o usuário digita.

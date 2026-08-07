@@ -1,7 +1,9 @@
+// Formata um número como moeda brasileira (R$ 1.234,56).
 export function formatCurrency(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// Formata uma data ISO 8601 para o formato "DD/MM/AAAA HH:mm" (ou apenas "DD/MM/AAAA" se não houver hora).
 export function formatDateTime(isoDate: string): string {
   const date = new Date(isoDate);
   return date.toLocaleString('pt-BR', {

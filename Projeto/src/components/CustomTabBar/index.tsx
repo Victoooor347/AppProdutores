@@ -1,10 +1,11 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from 'react-native'
 import { style } from "../../global/styles";
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { AntDesign, Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs'; // Importa o tipo BottomTabBarProps do React Navigation para tipar as props do componente CustomTabBar
+import { AntDesign, Ionicons, MaterialIcons } from '@expo/vector-icons'; // Importa os ícones do pacote @expo/vector-icons para serem usados na barra de navegação
 import { themes } from "../../global/themes";
 
+// Componente de barra de navegação personalizada para a aplicação, exibindo ícones e textos para cada aba.
 export default ({state,navigation}: BottomTabBarProps)=>{
 
     const go = (screenName: string) => {

@@ -467,17 +467,209 @@ export const style = StyleSheet.create({
 
 
     //Estilos página de usuario
-    containerPerfil: {
-      flex: 100, 
-      justifyContent: "center", 
-      alignItems: "center", 
-      gap: 16
-      
-    },
-    bottomLogout: { 
-      backgroundColor: '#c0392b', 
-      paddingVertical: 10, 
-      paddingHorizontal: 24, 
-      borderRadius: 8 
-    },    
+    screenUser: {
+    flex: 1,
+    backgroundColor: themes.colors.branco,
+  },
+  contentUser: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  titleUser: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: themes.colors.verde,
+    marginBottom: 20,
+  },
+  centeredUser: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  fieldUser: {
+    marginBottom: 16,
+  },
+  labelUser: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: themes.colors.cinzaTexto,
+    marginBottom: 6,
+  },
+  inputUser: {
+    backgroundColor: themes.colors.cinzaBg,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: themes.colors.preto,
+  },
+  inputDisabledUser: {
+    justifyContent: 'center',
+    opacity: 0.7,
+  },
+  inputDisabledTextUser: {
+    fontSize: 15,
+    color: themes.colors.cinzaTexto,
+  },
+  helperTextUser: {
+    fontSize: 11,
+    color: themes.colors.cinzaMedio,
+    marginTop: 4,
+  },
+  saveButtonUser: {
+    backgroundColor: themes.colors.verdeMedio,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  saveButtonDisabledUser: {
+    opacity: 0.5,
+  },
+  saveButtonTextUser: {
+    color: themes.colors.branco,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  signOutButtonUser: {
+    marginTop: 32,
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  signOutButtonTextUser: {
+    color: themes.colors.erro,
+    fontWeight: '600',
+  },
+  errorBoxUser: {
+    backgroundColor: themes.colors.erroBg,
+    borderRadius: 12,
+    padding: 16,
+  },
+  errorTextUser: {
+    color: themes.colors.erro,
+  },  
+
+
+
+    //Estilos para o componente DateRangeField(Calendário)
+    fieldCal: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: themes.colors.branco,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  fieldTextCal: {
+    color: themes.colors.preto,
+    fontSize: 13,
+    flexShrink: 1,
+  },
+  backdropCal: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  sheetCal: {
+    backgroundColor: themes.colors.branco,
+    borderRadius: 16,
+    padding: 16,
+  },
+  sheetTitleCal: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: themes.colors.preto,
+    marginBottom: 4,
+  },
+  sheetSubtitleCal: {
+    fontSize: 12,
+    color: themes.colors.cinzaTexto,
+    marginBottom: 8,
+  },
+  actionsCal: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 12,
+  },
+  clearButtonCal: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  clearButtonTextCal: {
+    color: themes.colors.cinzaTexto,
+    fontWeight: '600',
+  },
+  applyButtonCal: {
+    backgroundColor: themes.colors.verdeMedio,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  applyButtonDisabledCal: {
+    opacity: 0.5,
+  },
+  applyButtonTextCal: {
+    color: themes.colors.branco,
+    fontWeight: '700',
+  },
+
+
+
+  //Estilos para o componente SelectField(Dropdown)
+  fieldSF: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: themes.colors.branco,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    minWidth: 90,
+  },
+  fieldTextSF: {
+    color: themes.colors.preto,
+    fontSize: 14,
+    flexShrink: 1,
+  },
+  backdropSF: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  sheetSF: {
+    backgroundColor: themes.colors.branco,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 16,
+    paddingBottom: 32,
+    maxHeight: '60%',
+  },
+  sheetTitleSF: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: themes.colors.cinzaMedio,
+    textTransform: 'uppercase',
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  optionSF: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: themes.colors.cinzaBorda,
+  },
+  optionTextSF: {
+    fontSize: 16,
+    color: themes.colors.preto,
+  },
+  optionTextSelectedSF: {
+    color: themes.colors.verdeMedio,
+    fontWeight: '600',
+  },
 })

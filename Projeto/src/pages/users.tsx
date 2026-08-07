@@ -1,32 +1,36 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react'; // Importa o React e os hooks useCallback, useEffect e useState para gerenciar o estado e os efeitos colaterais do componente
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  Alert,
+  TextInput, // Componente que permite criar campos de entrada de texto
+  TouchableOpacity, // Componente que permite criar botões e áreas clicáveis
+  ActivityIndicator, // Componente que exibe um indicador de carregamento (spinner)
+  ScrollView, // Componente que permite criar uma área rolável para exibir conteúdo maior que a tela
+  Alert, // Componente para exibir alertas e mensagens de erro
 } from 'react-native';
-import { useAuth } from '../context/authContext';
-import { getProfile, updateProfile } from '../services/userService';
-import { UserProfile } from '../types/userprofile';
+import { useAuth } from '../context/authContext'; // Importa o hook useAuth do contexto de autenticação para acessar informações do usuário e funções relacionadas à autenticação
+import { getProfile, updateProfile } from '../services/userService'; // Importa as funções getProfile e updateProfile do serviço de usuário para buscar e atualizar o perfil do usuário
+import { UserProfile } from '../types/userprofile'; // Importa o tipo UserProfile que define a estrutura do perfil do usuário
 import { themes } from '../global/themes';
-import AppHeader from '../components/AppHeader';
+import AppHeader from '../components/AppHeader'; // Importa o componente AppHeader que exibe o cabeçalho da aplicação
+import { style } from '../global/styles';
 
 export default function User() {
+  // Contexto de autenticação
   const { token, signOut } = useAuth();
 
+  // Estado do componente
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [name, setName] = useState('');
   const [telefone, setTelefone] = useState('');
   const [propriedade, setPropriedade] = useState('');
 
+  // Estado de carregamento e salvamento
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Função para carregar o perfil do usuário
   const loadProfile = useCallback(async () => {
     if (!token) return;
     try {
@@ -41,6 +45,7 @@ export default function User() {
     }
   }, [token]);
 
+  // useEffect para carregar o perfil do usuário quando o componente é montado
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -49,12 +54,12 @@ export default function User() {
     })();
   }, [loadProfile]);
 
-  // Só habilita "Salvar" se algo realmente mudou — evita uma chamada de API
-  // desnecessária quando o usuário só entrou pra olhar a tela.
+  // Verifica se houve alguma mudança nos campos do perfil em relação ao perfil carregado
   const houveMudanca =
     profile !== null &&
     (name !== profile.name || telefone !== profile.telefone || propriedade !== profile.propriedade);
 
+  // Função para salvar as alterações do perfil do usuário
   async function handleSalvar() {
     if (!token || !houveMudanca) return;
 
@@ -63,6 +68,7 @@ export default function User() {
       return;
     }
 
+    // Validação do telefone (opcional)
     setIsSaving(true);
     try {
       const atualizado = await updateProfile({ name, telefone, propriedade }, token);
@@ -78,6 +84,7 @@ export default function User() {
     }
   }
 
+  // Função para lidar com o logout do usuário
   function handleSignOut() {
     Alert.alert('Sair', 'Tem certeza que deseja sair da sua conta?', [
       { text: 'Cancelar', style: 'cancel' },
@@ -86,34 +93,34 @@ export default function User() {
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={style.screenUser}>
       <AppHeader title="Dickow Produtores" />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Meu Perfil</Text>
+      <ScrollView contentContainerStyle={style.contentUser}>
+        <Text style={style.titleUser}>Meu Perfil</Text>
 
         {isLoading ? (
-          <View style={styles.centered}>
+          <View style={style.centeredUser}>
             <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
           </View>
         ) : errorMessage ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{errorMessage}</Text>
+          <View style={style.errorBoxUser}>
+            <Text style={style.errorTextUser}>{errorMessage}</Text>
           </View>
         ) : (
           <>
-            <View style={styles.field}>
-              <Text style={styles.label}>CPF</Text>
-              <View style={[styles.input, styles.inputDisabled]}>
-                <Text style={styles.inputDisabledText}>{profile?.cpf}</Text>
+            <View style={style.fieldUser}>
+              <Text style={style.labelUser}>CPF</Text>
+              <View style={[style.inputUser, style.inputDisabledUser]}>
+                <Text style={style.inputDisabledTextUser}>{profile?.cpf}</Text>
               </View>
-              <Text style={styles.helperText}>O CPF não pode ser alterado.</Text>
+              <Text style={style.helperTextUser}>O CPF não pode ser alterado.</Text>
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Nome</Text>
+            <View style={style.fieldUser}>
+              <Text style={style.labelUser}>Nome</Text>
               <TextInput
-                style={styles.input}
+                style={style.inputUser}
                 value={name}
                 onChangeText={setName}
                 placeholder="Seu nome"
@@ -121,10 +128,10 @@ export default function User() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Telefone</Text>
+            <View style={style.fieldUser}>
+              <Text style={style.labelUser}>Telefone</Text>
               <TextInput
-                style={styles.input}
+                style={style.inputUser}
                 value={telefone}
                 onChangeText={setTelefone}
                 placeholder="(00) 00000-0000"
@@ -133,10 +140,10 @@ export default function User() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Propriedade</Text>
+            <View style={style.fieldUser}>
+              <Text style={style.labelUser}>Propriedade</Text>
               <TextInput
-                style={styles.input}
+                style={style.inputUser}
                 value={propriedade}
                 onChangeText={setPropriedade}
                 placeholder="Nome da fazenda/propriedade"
@@ -145,106 +152,23 @@ export default function User() {
             </View>
 
             <TouchableOpacity
-              style={[styles.saveButton, (!houveMudanca || isSaving) && styles.saveButtonDisabled]}
+              style={[style.saveButtonUser, (!houveMudanca || isSaving) && style.saveButtonDisabledUser]}
               disabled={!houveMudanca || isSaving}
               onPress={handleSalvar}
             >
               {isSaving ? (
                 <ActivityIndicator color={themes.colors.branco} size="small" />
               ) : (
-                <Text style={styles.saveButtonText}>Salvar alterações</Text>
+                <Text style={style.saveButtonTextUser}>Salvar alterações</Text>
               )}
             </TouchableOpacity>
           </>
         )}
 
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutButtonText}>Sair da conta</Text>
+        <TouchableOpacity style={style.signOutButtonUser} onPress={handleSignOut}>
+          <Text style={style.signOutButtonTextUser}>Sair da conta</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: themes.colors.branco,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: themes.colors.verde,
-    marginBottom: 20,
-  },
-  centered: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  field: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: themes.colors.cinzaTexto,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: themes.colors.cinzaBg,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: themes.colors.preto,
-  },
-  inputDisabled: {
-    justifyContent: 'center',
-    opacity: 0.7,
-  },
-  inputDisabledText: {
-    fontSize: 15,
-    color: themes.colors.cinzaTexto,
-  },
-  helperText: {
-    fontSize: 11,
-    color: themes.colors.cinzaMedio,
-    marginTop: 4,
-  },
-  saveButton: {
-    backgroundColor: themes.colors.verdeMedio,
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    color: themes.colors.branco,
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  signOutButton: {
-    marginTop: 32,
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  signOutButtonText: {
-    color: themes.colors.erro,
-    fontWeight: '600',
-  },
-  errorBox: {
-    backgroundColor: themes.colors.erroBg,
-    borderRadius: 12,
-    padding: 16,
-  },
-  errorText: {
-    color: themes.colors.erro,
-  },
-});
