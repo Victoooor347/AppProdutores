@@ -1,62 +1,76 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { 
+  useCallback, //otimização de funções
+  useEffect, //gerenciar efeitos colaterais
+  useMemo, //memorização de valores calculados
+  useState //gerenciar estados locais
+} from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-  ScrollView,
-  Alert,
-  Linking,
+  View, //container principal
+  Text, //exibir texto
+  TouchableOpacity, //botão clicável
+  ActivityIndicator, //indicador de carregamento
+  RefreshControl, //controle de atualização, puxar para atualizar
+  ScrollView, //container rolável
+  Alert, //exibir alertas
+  Linking, //abrir links externos
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../context/authContext';
+import { Ionicons } from '@expo/vector-icons'; //ícones do Ionicons
+import { useAuth } from '../context/authContext'; //hook personalizado para autenticação
 import {
-  getResumoCargas,
-  listCargas,
-  gerarPdfCargas,
-  consultarJobPdf,
+  getResumoCargas, 
+  listCargas, 
+  gerarPdfCargas, 
+  consultarJobPdf, //funções de serviço para cargas
 } from '../services/cargasService';
-import { Carga, Cultura, ResumoCultura } from '../types/cargas';
-import { formatDate } from '../utils/format';
+import { Carga, Cultura, ResumoCultura } from '../types/cargas'; //tipos de dados para cargas
+import { formatDate } from '../utils/format'; 
 import { themes } from '../global/themes';
-import AppHeader from '../components/AppHeader';
-import SelectField from '../components/SelectField';
-import DateRangeField from '../components/DateRangeField';
+import AppHeader from '../components/AppHeader'; // componente de cabeçalho do aplicativo
+import SelectField from '../components/SelectField'; //componente de campo de seleção
+import DateRangeField from '../components/DateRangeField'; //componente de campo de intervalo de datas
 import { style } from '../global/styles';
 
+// Constantes para o ano atual e opções de anos
 const ANO_ATUAL = new Date().getFullYear();
 const ANOS = Array.from({ length: 5 }, (_, i) => String(ANO_ATUAL - i));
 
+// Opções de cultura para o filtro
 const CULTURA_OPTIONS = [
   { label: 'Todas', value: 'todas' as const },
   { label: 'Arroz', value: 'arroz' as const },
   { label: 'Soja', value: 'soja' as const },
 ];
 
+// Constantes para controle de polling ao gerar PDF
 const POLL_INTERVAL_MS = 1500;
 const POLL_MAX_TENTATIVAS = 20; // ~30s no total antes de desistir
 
 export default function Relatorios() {
+  // Hook de autenticação para obter o token do usuário
   const { token } = useAuth();
 
+  // Estados para filtros e dados
   const [ano, setAno] = useState(String(ANO_ATUAL));
   const [cultura, setCultura] = useState<Cultura | 'todas'>('todas');
   const [inscricaoEstadual, setInscricaoEstadual] = useState('todas');
   const [periodo, setPeriodo] = useState<{ dataInicio?: string; dataFim?: string }>({});
 
+  // Estados para armazenar os dados carregados
   const [resumo, setResumo] = useState<ResumoCultura[]>([]);
   const [cargas, setCargas] = useState<Carga[]>([]);
+
   // Usado só pra montar as opções do filtro de IE — carregado sem os
   // outros filtros aplicados, pra sempre mostrar todas as IEs do ano.
   const [catalogoIEs, setCatalogoIEs] = useState<string[]>([]);
 
+  // Estados para gerenciar seleção, carregamento e erros
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Memoriza as opções de IE para o filtro, incluindo a opção "todas"
   const ieOptions = useMemo(
     () => [
       { label: 'IE', value: 'todas' },
@@ -65,14 +79,16 @@ export default function Relatorios() {
     [catalogoIEs]
   );
 
+  // Função para carregar os dados do relatório, usando useCallback para evitar recriações desnecessárias
   const loadDados = useCallback(async () => {
     if (!token) return;
     try {
       setErrorMessage(null);
 
+      // Faz as chamadas de API em paralelo para otimizar o tempo de carregamento
       const [resumoData, catalogoData, cargasData] = await Promise.all([
         getResumoCargas(Number(ano), token),
-        listCargas({ ano: Number(ano), perPage: 100 }, token),
+        listCargas({ ano: Number(ano), perPage: 100 }, token), 
         listCargas(
           {
             ano: Number(ano),
@@ -86,7 +102,9 @@ export default function Relatorios() {
         ),
       ]);
 
+      // Atualiza o estado com os dados carregados
       setResumo(resumoData);
+      // Atualiza o catálogo de IEs com base nos dados carregados, removendo duplicatas e valores nulos
       setCatalogoIEs(
         Array.from(
           new Set(
@@ -96,6 +114,7 @@ export default function Relatorios() {
           )
         )
       );
+      // Atualiza a lista de cargas com base nos dados carregados
       setCargas(cargasData.data);
       // Remove da seleção qualquer carga que não esteja mais na lista
       // filtrada (ex: usuário selecionou e depois mudou o filtro).
@@ -108,6 +127,7 @@ export default function Relatorios() {
     }
   }, [token, ano, cultura, inscricaoEstadual, periodo]);
 
+  // useEffect para carregar os dados quando o componente é montado ou quando os filtros mudam
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -116,12 +136,14 @@ export default function Relatorios() {
     })();
   }, [loadDados]);
 
+  // Função para lidar com a atualização manual dos dados (pull-to-refresh)
   async function handleRefresh() {
     setIsRefreshing(true);
     await loadDados();
     setIsRefreshing(false);
   }
 
+  // Função para alternar a seleção de uma carga pelo seu ID
   function toggleSelecao(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -134,6 +156,7 @@ export default function Relatorios() {
     });
   }
 
+  // Função para gerar o PDF das cargas selecionadas
   async function handleGerarPdf() {
     if (!token || selectedIds.size === 0) return;
 
@@ -165,6 +188,7 @@ export default function Relatorios() {
     }
   }
 
+  // Função para obter o resumo de uma cultura específica
   function resumoDoCultura(valorCultura: Cultura) {
     return resumo.find((item) => item.cultura === valorCultura);
   }
@@ -251,7 +275,7 @@ export default function Relatorios() {
               <TouchableOpacity
                 key={carga.id}
                 style={style.cargaRowRel}
-                onPress={() => toggleSelecao(carga.id)}
+                onPress={() => toggleSelecao(carga.id)} 
                 activeOpacity={0.7}
               >
                 <View style={[style.checkboxRel, isSelected && style.checkboxSelectedRel]}>
@@ -259,7 +283,7 @@ export default function Relatorios() {
                 </View>
                 <Text style={[style.cargaCellRel, style.cargaCellDataRel]}>{formatDate(carga.data)}</Text>
                 <Text style={[style.cargaCellRel, style.cargaCellCulturaRel]}>
-                  {carga.cultura === 'arroz' ? 'Arroz' : 'Soja'}
+                  {carga.cultura === 'arroz' ? 'Arroz' : 'Soja'} 
                 </Text>
                 <Text style={[style.cargaCellRel, style.cargaCellSacasRel]}>
                   {carga.quantidade} {carga.unidade}

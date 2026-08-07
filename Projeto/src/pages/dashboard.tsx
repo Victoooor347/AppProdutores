@@ -1,5 +1,17 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, RefreshControl, ScrollView, ImageBackground, Image } from 'react-native';
+import React, { 
+  useCallback, // memorizar a função de carregamento de preços
+  useEffect, // executa efeitos colaterais, como carregar dados ao montar o componente
+  useState  // para gerenciar o estado local do componente
+} from 'react';
+import { 
+  View, 
+  Text, 
+  ActivityIndicator, 
+  RefreshControl, 
+  ScrollView, 
+  ImageBackground, 
+  Image 
+} from 'react-native';
 import { useAuth } from '../context/authContext';
 import { getPrecosDoDia } from '../services/precosService';
 import { PrecoDia } from '../types/precos';
