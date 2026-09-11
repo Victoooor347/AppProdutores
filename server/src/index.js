@@ -8,11 +8,19 @@ const precosRoutes = require('./routes/precos');
 const cargasRoutes = require('./routes/cargas');
 const relatoriosRoutes = require('./routes/relatorios');
 const contraNotasRoutes = require('./routes/contraNotas');
+const { STORAGE_DIR } = require('./services/pdfService');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Serve os PDFs gerados. Protegido só pela imprevisibilidade do UUID do
+// job (não exige login) — é assim porque o app abre esse link direto no
+// navegador do celular (Linking.openURL), que não consegue mandar o header
+// de Authorization. Suficiente por enquanto; se precisar de mais segurança
+// depois, dá pra trocar por download autenticado via expo-file-system.
+app.use('/arquivos/relatorios', express.static(STORAGE_DIR));
 
 app.use('/auth', authRoutes);
 app.use('/me', meRoutes);

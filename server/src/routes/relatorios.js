@@ -2,6 +2,7 @@ const express = require('express');
 const { pool } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { requireAuth } = require('../middleware/auth');
+const { gerarPdfRelatorioCargas } = require('../services/pdfService');
 
 const router = express.Router();
 
@@ -14,16 +15,26 @@ router.post('/gerar-pdf', requireAuth, asyncHandler(async (req, res) => {
     return res.status(400).json({ message: 'Selecione ao menos uma carga.' });
   }
 
-  // Confere que todas as cargas pertencem mesmo ao usuário logado —
-  // nunca confiar em IDs vindos do cliente sem checar a dono.
-  const ownershipCheck = await pool.query(
-    `SELECT id FROM cargas WHERE id = ANY($1::uuid[]) AND user_cpf = $2`,
+  // Busca as cargas já confirmando que pertencem ao usuário logado —
+  // nunca confiar em IDs vindos do cliente sem checar o dono. Também serve
+  // pra já trazer os dados que vão pro PDF, sem precisar de uma segunda query.
+  const cargasResult = await pool.query(
+    `SELECT id, cultura, data, inscricao_estadual, quantidade, unidade, placa
+     FROM cargas
+     WHERE id = ANY($1::uuid[]) AND user_cpf = $2
+     ORDER BY data`,
     [cargaIds, req.userCpf]
   );
 
-  if (ownershipCheck.rows.length !== cargaIds.length) {
+  if (cargasResult.rows.length !== cargaIds.length) {
     return res.status(403).json({ message: 'Uma ou mais cargas não pertencem a este usuário.' });
   }
+
+  const userResult = await pool.query(
+    `SELECT cpf, name, propriedade FROM users WHERE cpf = $1`,
+    [req.userCpf]
+  );
+  const produtor = userResult.rows[0];
 
   const jobResult = await pool.query(
     `INSERT INTO relatorio_pdf_jobs (user_cpf, status) VALUES ($1, 'processando') RETURNING id, status`,
@@ -37,25 +48,32 @@ router.post('/gerar-pdf', requireAuth, asyncHandler(async (req, res) => {
     [job.id, cargaIds]
   );
 
-  // ---------------------------------------------------------------
-  // TODO (implementação real): aqui entraria a geração de verdade do PDF
-  // (juntar os dados das cargas num template, ex: com pdf-lib ou puppeteer,
-  // subir o arquivo pra um storage tipo S3/R2, e salvar a URL final).
-  // Por enquanto isso só SIMULA o processamento com um setTimeout.
-  // ---------------------------------------------------------------
-  setTimeout(async () => {
+  // Gera o PDF de verdade. Isso roda em background (a resposta HTTP já foi
+  // decidida abaixo) — é por isso que o app faz polling no job_id até o
+  // status virar "pronto".
+  (async () => {
     try {
+      await gerarPdfRelatorioCargas({
+        jobId: job.id,
+        produtor,
+        cargas: cargasResult.rows,
+      });
+
+      // Monta a URL pública a partir da própria requisição (funciona tanto
+      // em localhost/IP da rede local quanto depois de um deploy real,
+      // sem precisar de uma variável de ambiente fixa pra isso).
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const arquivoPdfUrl = `${baseUrl}/arquivos/relatorios/${job.id}.pdf`;
+
       await pool.query(
-        `UPDATE relatorio_pdf_jobs
-         SET status = 'pronto', arquivo_pdf_url = $2
-         WHERE id = $1`,
-        [job.id, `https://exemplo.com/relatorios/${job.id}.pdf`]
+        `UPDATE relatorio_pdf_jobs SET status = 'pronto', arquivo_pdf_url = $2 WHERE id = $1`,
+        [job.id, arquivoPdfUrl]
       );
     } catch (err) {
       console.error('Falha ao gerar PDF do relatório:', err);
       await pool.query(`UPDATE relatorio_pdf_jobs SET status = 'erro' WHERE id = $1`, [job.id]);
     }
-  }, 5000);
+  })();
 
   return res.json({ job_id: job.id, status: job.status });
 }));
