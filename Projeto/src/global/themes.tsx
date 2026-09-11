@@ -2,7 +2,7 @@
 export const themes = {
     colors: {
         verde:      '#085227',
-        verdeMedio: '#178f4d',
+        verdeMedio: '#0d8241',
         verdeClaro: '#2b762fe1',
         verdeBg:    '#F0F7F3',
         amarelo:    '#f7ff02',

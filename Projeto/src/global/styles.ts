@@ -122,7 +122,8 @@ export const style = StyleSheet.create({
         },
         shadowOpacity: 0.29,
         shadowRadius: 4.65,
-        elevation: 70
+        elevation: 70,
+        marginTop: -10
     },
     tabItem: {
         flex: 1,
@@ -248,6 +249,7 @@ export const style = StyleSheet.create({
 
     //Estilos página de relatórios
     screenRel: {
+    paddingTop: -100,
     flex: 1,
     backgroundColor: themes.colors.branco,
     },
@@ -329,6 +331,10 @@ export const style = StyleSheet.create({
       marginBottom: 8,
       gap: 8,
     },
+    listaCargasRel: {
+      flex: 1,
+    },
+    
     checkboxRel: {
       width: 20,
       height: 20,
@@ -361,11 +367,12 @@ export const style = StyleSheet.create({
       textAlign: 'right',
     },
     pdfButtonRel: {
-      backgroundColor: themes.colors.cinzaBg,
+      backgroundColor: themes.colors.verdeMedio,
       borderRadius: 10,
       paddingVertical: 14,
       alignItems: 'center',
-      marginTop: 16,
+      width: 250,
+      alignSelf: "center",
     },
     pdfButtonDisabledRel: {
       opacity: 0.5,
@@ -391,8 +398,8 @@ export const style = StyleSheet.create({
       color: themes.colors.cinzaMedio,
     },
     footerRel: {
-      padding: 20,
-      paddingTop: 12,
+      padding: 5,
+      paddingTop: 5,
       backgroundColor: themes.colors.branco,
       borderTopWidth: 1,
       borderTopColor: themes.colors.cinzaBorda,
@@ -463,11 +470,15 @@ export const style = StyleSheet.create({
     emptyTextCN: {
       color: themes.colors.cinzaMedio,
     },
+    listaCN: {
+    flex: 1,
+    },
 
 
 
     //Estilos página de usuario
-    screenUser: {
+  screenUser: {
+    paddingTop: -100,
     flex: 1,
     backgroundColor: themes.colors.branco,
   },
@@ -476,6 +487,9 @@ export const style = StyleSheet.create({
     paddingBottom: 40,
   },
   titleUser: {
+    paddingLeft: 15,
+    paddingRight: 15,
+    paddingTop: 10,
     fontSize: 18,
     fontWeight: 'bold',
     color: themes.colors.verde,
@@ -489,6 +503,8 @@ export const style = StyleSheet.create({
     marginBottom: 16,
   },
   labelUser: {
+    paddingLeft: 15,
+    paddingRight: 15,
     fontSize: 13,
     fontWeight: '600',
     color: themes.colors.cinzaTexto,
@@ -501,6 +517,7 @@ export const style = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 15,
     color: themes.colors.preto,
+    paddingLeft: 30,
   },
   inputDisabledUser: {
     justifyContent: 'center',
@@ -511,6 +528,8 @@ export const style = StyleSheet.create({
     color: themes.colors.cinzaTexto,
   },
   helperTextUser: {
+    paddingLeft: 15,
+    paddingRight: 15,
     fontSize: 11,
     color: themes.colors.cinzaMedio,
     marginTop: 4,
@@ -521,6 +540,8 @@ export const style = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 8,
+    width: 250,
+    alignSelf: 'center',
   },
   saveButtonDisabledUser: {
     opacity: 0.5,

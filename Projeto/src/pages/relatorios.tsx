@@ -13,7 +13,10 @@ import {
   ScrollView, //container rolável
   Alert, //exibir alertas
   Linking, //abrir links externos
+  Pressable, 
+  FlatList,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; //garantir que o conteúdo esteja dentro da área segura da tela
 import { Ionicons } from '@expo/vector-icons'; //ícones do Ionicons
 import { useAuth } from '../context/authContext'; //hook personalizado para autenticação
 import {
@@ -194,11 +197,71 @@ export default function Relatorios() {
   }
 
   return (
-    <View style={style.screenRel}>
-      <AppHeader title="App Produtor" />
+  <SafeAreaView style={style.screenRel}>
+    <AppHeader title="App Produtor" />
 
-      <ScrollView
+    {/* Conteúdo fixo, fora da rolagem */}
+    <View style={style.titleRowRel}>
+      <Text style={style.titleRel}>Relatório de Safra</Text>
+      <SelectField
+        label="Ano"
+        value={ano}
+        options={ANOS.map((a) => ({ label: a, value: a }))}
+        onChange={setAno}
+      />
+    </View>
+
+    {isLoading ? (
+      <View style={style.centeredRel}>
+        <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
+      </View>
+    ) : errorMessage ? (
+      <View style={style.errorBoxRel}>
+        <Text style={style.errorTextRel}>{errorMessage}</Text>
+      </View>
+    ) : (
+      <>
+        <View style={style.resumoRowRel}>
+          <View style={style.resumoCardRel}>
+            <Text style={style.resumoLabelRel}>Total entregue - Arroz</Text>
+            <Text style={style.resumoValueRel}>
+              {resumoDoCultura('arroz')?.totalSacas ?? 0}{' '}
+              <Text style={style.resumoUnidadeRel}>
+                {resumoDoCultura('arroz')?.unidade ?? 'sc'}
+              </Text>
+            </Text>
+          </View>
+          <View style={style.resumoCardRel}>
+            <Text style={style.resumoLabelRel}>Total entregue - Soja</Text>
+            <Text style={style.resumoValueRel}>
+              {resumoDoCultura('soja')?.totalSacas ?? 0}{' '}
+              <Text style={style.resumoUnidadeRel}>
+                {resumoDoCultura('soja')?.unidade ?? 'sc'}
+              </Text>
+            </Text>
+          </View>
+        </View>
+
+        <View style={style.filterBarRel}>
+          <SelectField
+            label="IE"
+            value={inscricaoEstadual}
+            options={ieOptions}
+            onChange={setInscricaoEstadual}
+          />
+          <SelectField label="Cultura" value={cultura} options={CULTURA_OPTIONS} onChange={setCultura} />
+          <DateRangeField value={periodo} onChange={setPeriodo} />
+        </View>
+      </>
+    )}
+
+    {/* Só a lista de cargas rola, com pull-to-refresh */}
+    {!isLoading && !errorMessage && (
+      <FlatList
+        style={style.listaCargasRel}
         contentContainerStyle={style.contentRel}
+        data={cargas}
+        keyExtractor={(carga) => String(carga.id)}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -206,113 +269,53 @@ export default function Relatorios() {
             colors={[themes.colors.verdeMedio]}
           />
         }
-      >
-        <View style={style.titleRowRel}>
-          <Text style={style.titleRel}>Relatório de Safra</Text>
-          <SelectField
-            label="Ano"
-            value={ano}
-            options={ANOS.map((a) => ({ label: a, value: a }))}
-            onChange={setAno}
-          />
-        </View>
-
-        {isLoading ? (
-          <View style={style.centeredRel}>
-            <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
-          </View>
-        ) : errorMessage ? (
-          <View style={style.errorBoxRel}>
-            <Text style={style.errorTextRel}>{errorMessage}</Text>
-          </View>
-        ) : (
-          <>
-            <View style={style.resumoRowRel}>
-              <View style={style.resumoCardRel}>
-                <Text style={style.resumoLabelRel}>Total entregue - Arroz</Text>
-                <Text style={style.resumoValueRel}>
-                  {resumoDoCultura('arroz')?.totalSacas ?? 0}{' '}
-                  <Text style={style.resumoUnidadeRel}>
-                    {resumoDoCultura('arroz')?.unidade ?? 'sc'}
-                  </Text>
-                </Text>
-              </View>
-              <View style={style.resumoCardRel}>
-                <Text style={style.resumoLabelRel}>Total entregue - Soja</Text>
-                <Text style={style.resumoValueRel}>
-                  {resumoDoCultura('soja')?.totalSacas ?? 0}{' '}
-                  <Text style={style.resumoUnidadeRel}>
-                    {resumoDoCultura('soja')?.unidade ?? 'sc'}
-                  </Text>
-                </Text>
-              </View>
-            </View>
-
-            <View style={style.filterBarRel}>
-              <SelectField
-                label="IE"
-                value={inscricaoEstadual}
-                options={ieOptions}
-                onChange={setInscricaoEstadual}
-              />
-              <SelectField label="Cultura" value={cultura} options={CULTURA_OPTIONS} onChange={setCultura} />
-              <DateRangeField value={periodo} onChange={setPeriodo} />
-            </View>
-          </>
-        )}
-
-        {!isLoading && !errorMessage && cargas.length === 0 && (
+        ListEmptyComponent={
           <View style={style.emptyBoxRel}>
             <Text style={style.emptyTextRel}>Nenhuma carga encontrada para esse filtro.</Text>
           </View>
+        }
+        renderItem={({ item: carga }) => {
+          const isSelected = selectedIds.has(carga.id);
+          return (
+            <Pressable
+              style={style.cargaRowRel}
+              onPress={() => toggleSelecao(carga.id)}
+            >
+              <View style={[style.checkboxRel, isSelected && style.checkboxSelectedRel]}>
+                {isSelected && <Ionicons name="checkmark" size={14} color={themes.colors.branco} />}
+              </View>
+              <Text style={[style.cargaCellRel, style.cargaCellDataRel]}>{formatDate(carga.data)}</Text>
+              <Text style={[style.cargaCellRel, style.cargaCellCulturaRel]}>
+                {carga.cultura === 'arroz' ? 'Arroz' : 'Soja'}
+              </Text>
+              <Text style={[style.cargaCellRel, style.cargaCellSacasRel]}>
+                {carga.quantidade} {carga.unidade}
+              </Text>
+              <Text style={[style.cargaCellRel, style.cargaCellPlacaRel]}>{carga.placa}</Text>
+            </Pressable>
+          );
+        }}
+      />
+    )}
+
+    <View style={style.footerRel}>
+      <Pressable
+        style={[
+          style.pdfButtonRel,
+          (selectedIds.size === 0 || isGeneratingPdf) && style.pdfButtonDisabledRel,
+        ]}
+        disabled={selectedIds.size === 0 || isGeneratingPdf}
+        onPress={handleGerarPdf}
+      >
+        {isGeneratingPdf ? (
+          <ActivityIndicator color={themes.colors.preto} size="small" />
+        ) : (
+          <Text style={style.pdfButtonTextRel}>
+            Gerar PDF das cargas selecionadas
+            {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+          </Text>
         )}
-
-        {!isLoading &&
-          !errorMessage &&
-          cargas.map((carga) => {
-            const isSelected = selectedIds.has(carga.id);
-            return (
-              <TouchableOpacity
-                key={carga.id}
-                style={style.cargaRowRel}
-                onPress={() => toggleSelecao(carga.id)} 
-                activeOpacity={0.7}
-              >
-                <View style={[style.checkboxRel, isSelected && style.checkboxSelectedRel]}>
-                  {isSelected && <Ionicons name="checkmark" size={14} color={themes.colors.branco} />}
-                </View>
-                <Text style={[style.cargaCellRel, style.cargaCellDataRel]}>{formatDate(carga.data)}</Text>
-                <Text style={[style.cargaCellRel, style.cargaCellCulturaRel]}>
-                  {carga.cultura === 'arroz' ? 'Arroz' : 'Soja'} 
-                </Text>
-                <Text style={[style.cargaCellRel, style.cargaCellSacasRel]}>
-                  {carga.quantidade} {carga.unidade}
-                </Text>
-                <Text style={[style.cargaCellRel, style.cargaCellPlacaRel]}>{carga.placa}</Text>
-              </TouchableOpacity>
-            );
-          })}
-      </ScrollView>
-
-      <View style={style.footerRel}>
-        <TouchableOpacity
-          style={[
-            style.pdfButtonRel,
-            (selectedIds.size === 0 || isGeneratingPdf) && style.pdfButtonDisabledRel,
-          ]}
-          disabled={selectedIds.size === 0 || isGeneratingPdf}
-          onPress={handleGerarPdf}
-        >
-          {isGeneratingPdf ? (
-            <ActivityIndicator color={themes.colors.preto} size="small" />
-          ) : (
-            <Text style={style.pdfButtonTextRel}>
-              Gerar PDF das cargas selecionadas
-              {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      </Pressable>
     </View>
-  );
-}
+  </SafeAreaView>
+)}

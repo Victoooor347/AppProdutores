@@ -9,6 +9,8 @@ import {
   ScrollView, // Componente que permite criar uma área rolável para exibir conteúdo maior que a tela
   Linking, // Componente que permite abrir URLs externas, como links para PDFs
   Alert, // Componente para exibir alertas e mensagens de erro
+  FlatList,
+  Pressable,
 } from 'react-native';
 import { useAuth } from '../context/authContext'; // Importa o hook useAuth do contexto de autenticação para acessar funções e estados relacionados à autenticação
 import { listContraNotas } from '../services/contranotasService'; // Importa a função listContraNotas do serviço de contra-notas para buscar os dados das contra-notas da API
@@ -70,8 +72,11 @@ export default function ContraNotas() {
     <View style={style.screenCN}>
       <AppHeader title="Dickow Produtores" />
 
-      <ScrollView
+      <FlatList
+        style={style.listaCN}
         contentContainerStyle={style.contentCN}
+        data={contraNotas}
+        keyExtractor={(item) => String(item.id)}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -79,10 +84,9 @@ export default function ContraNotas() {
             colors={[themes.colors.verdeMedio]}
           />
         }
-      >
-        <Text style={style.titleCN}>Contra Notas</Text>
-
-        {isLoading ? (
+        ListHeaderComponent={<Text style={style.titleCN}>Contra Notas</Text>}
+        ListEmptyComponent={
+        isLoading ? (
           <View style={style.centeredCN}>
             <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
           </View>
@@ -90,25 +94,25 @@ export default function ContraNotas() {
           <View style={style.errorBoxCN}>
             <Text style={style.errorTextCN}>{errorMessage}</Text>
           </View>
-        ) : contraNotas.length === 0 ? (
+        ) : (
           <View style={style.emptyBoxCN}>
             <Text style={style.emptyTextCN}>Nenhuma contra-nota disponível.</Text>
           </View>
-        ) : (
-          contraNotas.map((item) => (
-            <View key={item.id} style={style.cardCN}>
-              <Text style={style.cardTitleCN}>NF - {item.numero}</Text>
-              <Text style={style.cardDateCN}>{formatDate(item.dataEmissao)}</Text>
-              <TouchableOpacity
-                style={style.downloadButtonCN}
-                onPress={() => handleBaixarPdf(item.arquivoPdfUrl)}
-              >
-                <Text style={style.downloadButtonTextCN}>Baixar PDF</Text>
-              </TouchableOpacity>
-            </View>
-          ))
+        ) 
+      }
+        renderItem={({item}) => (
+          <View style={style.cardCN}>
+            <Text style={style.cardTitleCN}>NF - {item.numero}</Text>
+            <Text style={style.cardDateCN}>{formatDate(item.dataEmissao)}</Text>
+            <Pressable
+              style={style.downloadButtonCN}
+              onPress={() => handleBaixarPdf(item.arquivoPdfUrl)}
+            >
+              <Text style={style.downloadButtonTextCN}>Baixar PDF</Text>
+            </Pressable>
+          </View>
         )}
-      </ScrollView>
+      />
     </View>
-  );
-}
+  )}
+  

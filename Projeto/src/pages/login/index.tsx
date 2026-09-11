@@ -4,9 +4,11 @@ import {
     View, 
     Image, 
     TextInput, // Importa componentes do React Native para criar a interface do usuário
-    TouchableOpacity, // Componente que permite criar botões e áreas clicáveis
     Alert, // Componente para exibir alertas e mensagens de erro
-    ActivityIndicator // Componente que exibe um indicador de carregamento (spinner)
+    ActivityIndicator, // Componente que exibe um indicador de carregamento (spinner)
+    KeyboardAvoidingView, // Componente que ajusta a interface quando o teclado é exibido
+    Platform, // Componente que permite detectar a plataforma (iOS ou Android) em que o aplicativo está sendo executado
+    Pressable, // Componente que permite criar áreas clicáveis
 } from 'react-native';
 import { style } from '../../global/styles';
 import logo from '../../assets/logo.png';
@@ -78,7 +80,9 @@ export default function Login() {
 
 
   return (
-    <View style={style.container}>
+    <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={style.container}>
       <View style={style.boxTop}>
             <Image
                 source={logo}
@@ -110,15 +114,15 @@ export default function Login() {
             />
         </View>
         <View style={style.boxBottom}> 
-            <TouchableOpacity style={style.button} onPress={() => handleLogin()}>
+            <Pressable style={style.button} onPress={() => handleLogin()}>
                 {Loading ? 
                     <ActivityIndicator color="#fff" size={"small"}/>
                 :
                     <Text style={style.textbutton}>Entrar</Text>}    
-            </TouchableOpacity>
+            </Pressable>
             <Text style={style.endPage}>Não tem acesso? Entre em contato com a gente.</Text>
           </View>
           
-    </View>
+    </KeyboardAvoidingView>
   );
 }

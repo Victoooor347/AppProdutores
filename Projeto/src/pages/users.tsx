@@ -6,8 +6,11 @@ import {
   TouchableOpacity, // Componente que permite criar botões e áreas clicáveis
   ActivityIndicator, // Componente que exibe um indicador de carregamento (spinner)
   ScrollView, // Componente que permite criar uma área rolável para exibir conteúdo maior que a tela
-  Alert, // Componente para exibir alertas e mensagens de erro
+  Alert,
+  Pressable, // Componente para exibir alertas e mensagens de erro
+  KeyboardAvoidingView, // Componente que ajusta a interface quando o teclado é exibido
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; // Componente que garante que o conteúdo seja exibido dentro da área segura da tela, evitando sobreposição com a barra de status e outros elementos do sistema
 import { useAuth } from '../context/authContext'; // Importa o hook useAuth do contexto de autenticação para acessar informações do usuário e funções relacionadas à autenticação
 import { getProfile, updateProfile } from '../services/userService'; // Importa as funções getProfile e updateProfile do serviço de usuário para buscar e atualizar o perfil do usuário
 import { UserProfile } from '../types/userprofile'; // Importa o tipo UserProfile que define a estrutura do perfil do usuário
@@ -93,10 +96,10 @@ export default function User() {
   }
 
   return (
-    <View style={style.screenUser}>
+    <SafeAreaView style={style.screenUser}>
       <AppHeader title="Dickow Produtores" />
 
-      <ScrollView contentContainerStyle={style.contentUser}>
+      <KeyboardAvoidingView contentContainerStyle={style.contentUser}>
         <Text style={style.titleUser}>Meu Perfil</Text>
 
         {isLoading ? (
@@ -151,7 +154,7 @@ export default function User() {
               />
             </View>
 
-            <TouchableOpacity
+            <Pressable
               style={[style.saveButtonUser, (!houveMudanca || isSaving) && style.saveButtonDisabledUser]}
               disabled={!houveMudanca || isSaving}
               onPress={handleSalvar}
@@ -161,14 +164,14 @@ export default function User() {
               ) : (
                 <Text style={style.saveButtonTextUser}>Salvar alterações</Text>
               )}
-            </TouchableOpacity>
+            </Pressable>
           </>
         )}
 
-        <TouchableOpacity style={style.signOutButtonUser} onPress={handleSignOut}>
+        <Pressable style={style.signOutButtonUser} onPress={handleSignOut}>
           <Text style={style.signOutButtonTextUser}>Sair da conta</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+        </Pressable>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
