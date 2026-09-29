@@ -10,9 +10,12 @@ import {
     Platform, // Componente que permite detectar a plataforma (iOS ou Android) em que o aplicativo está sendo executado
     Pressable, // Componente que permite criar áreas clicáveis
 } from 'react-native';
+import { StackScreenProps } from '@react-navigation/stack'; // Tipo das props que o navegador passa para a tela (navigation, route)
 import { style } from '../../global/styles';
 import logo from '../../assets/logo.png';
 import { useAuth } from "../../context/authContext"; // Importa o hook useAuth do contexto de autenticação para acessar funções e estados relacionados à autenticação
+import { RootStackParamList } from '../../types/navigation';
+import { FinalidadeCodigo } from '../../types/auth';
 import { 
     formatCpf, // Função para formatar o CPF digitado pelo usuário
     isValidCpf, // Função para validar se o CPF digitado é válido
@@ -21,7 +24,9 @@ import {
 } from "../../utils/validators";
 
 
-export default function Login() {
+type Props = StackScreenProps<RootStackParamList, 'Login'>;
+
+export default function Login({ navigation }: Props) {
 
     // Importa a função signIn do contexto de autenticação para realizar o login do usuário
     const { signIn } = useAuth();
@@ -29,25 +34,15 @@ export default function Login() {
     // Estado local para armazenar o CPF, a senha e o estado de carregamento do login
     const [cpf, setCpf] = useState('');
     const [password, setPassword] = useState('');
-    const [Loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    // // Verifica se o usuário digitou o atalho de desenvolvimento (V/V) para permitir login rápido durante o desenvolvimento
-    // const isDevShortcut = __DEV__ && cpf.toUpperCase() === 'V' && password === 'V';
-
-    // Função para lidar com a mudança no campo de CPF, formatando o valor digitado e permitindo o atalho de desenvolvimento
+    // Função para lidar com a mudança no campo de CPF, aplicando a máscara 000.000.000-00 enquanto o usuário digita
     function handleCpfChange(text: string) {
-        // Permite digitar o atalho de dev sem a máscara apagar o "V".
-        if (__DEV__ && text.toUpperCase() === 'V') {
-            setCpf(text);
-            return;
-        }
         setCpf(formatCpf(text));
     }
 
     // Função para validar o formulário de login, verificando se os campos estão preenchidos e se os valores são válidos
     function validateForm(): string | null {
-        // if (isDevShortcut) return null;
-
         if (!cpf || !password) {
             return 'Por favor, preencha todos os campos.';
         }
@@ -68,16 +63,20 @@ export default function Login() {
             return;
         }
 
-        setLoading(true);
+        setIsLoading(true);
         try {
             await signIn(cpf, password);
         } catch (error: any) {
             Alert.alert('Erro', error?.message ?? 'Não foi possível fazer login.');
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     }
 
+    // Abre o primeiro acesso ou a recuperação de senha, levando o CPF já digitado (se tiver)
+    function irParaCodigo(finalidade: FinalidadeCodigo) {
+        navigation.navigate('SolicitarCodigo', { finalidade, cpf: cpf || undefined });
+    }
 
   return (
     <KeyboardAvoidingView 
@@ -98,8 +97,7 @@ export default function Login() {
                 placeholder="Digite seu CPF"
                 value={cpf}
                 onChangeText={handleCpfChange}
-                //keyboardType={__DEV__ ? 'default' : 'numeric'}
-                keyboardType={ 'numeric' }
+                keyboardType="numeric"
                 maxLength={14}
                 placeholderTextColor={style.placeholder.color}
             />
@@ -114,13 +112,19 @@ export default function Login() {
             />
         </View>
         <View style={style.boxBottom}> 
-            <Pressable style={style.button} onPress={() => handleLogin()}>
-                {Loading ? 
+            {/* Desabilitado enquanto carrega, pra dois toques rápidos não enviarem o login duas vezes */}
+            <Pressable style={style.button} onPress={() => handleLogin()} disabled={isLoading}>
+                {isLoading ?
                     <ActivityIndicator color="#fff" size={"small"}/>
                 :
                     <Text style={style.textbutton}>Entrar</Text>}    
             </Pressable>
-            <Text style={style.endPage}>Não tem acesso? Entre em contato com a gente.</Text>
+            <Pressable onPress={() => irParaCodigo('recuperar_senha')}>
+                <Text style={style.linkLogin}>Esqueci minha senha</Text>
+            </Pressable>
+            <Pressable onPress={() => irParaCodigo('primeiro_acesso')}>
+                <Text style={style.linkLogin}>Primeiro acesso? Crie sua senha</Text>
+            </Pressable>
           </View>
           
     </KeyboardAvoidingView>

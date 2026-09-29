@@ -40,3 +40,10 @@ export function isValidCpf(value: string): boolean {
 export function isValidPassword(password: string): boolean {
   return password.length >= MIN_PASSWORD_LENGTH;
 }
+
+// Código enviado por e-mail no primeiro acesso / recuperação de senha: 6 números.
+export const CODIGO_LENGTH = 6;
+
+export function isValidCodigo(codigo: string): boolean {
+  return new RegExp(`^\\d{${CODIGO_LENGTH}}$`).test(codigo);
+}

@@ -6,14 +6,21 @@
 -- Usuário de teste. CPF 529.982.247-25 é um CPF de teste válido
 -- (passa no dígito verificador, é amplamente usado em tutoriais/testes —
 -- não pertence a ninguém de verdade). Senha: "123456"
-INSERT INTO users (cpf, password_hash, name, telefone, propriedade)
+-- Troque o e-mail pelo seu pra receber os códigos de verdade (com SMTP configurado).
+INSERT INTO users (cpf, password_hash, name, email, telefone, propriedade)
 VALUES (
   '52998224725',
   crypt('123456', gen_salt('bf')),
   'Produtor de Teste',
+  'produtor.teste@exemplo.com',
   '11999999999',
   'Fazenda Exemplo'
 );
+
+-- Produtor cadastrado pela empresa que AINDA NÃO criou a senha — serve pra
+-- testar o "Primeiro acesso". CPF 111.444.777-35 (CPF de teste válido).
+INSERT INTO users (cpf, password_hash, name, email)
+VALUES ('11144477735', NULL, 'Produtor Primeiro Acesso', 'primeiro.acesso@exemplo.com');
 
 -- Preço do dia
 INSERT INTO precos_dia (commodity, nome_exibicao, preco, unidade, descricao, atualizado_em)
@@ -28,12 +35,13 @@ VALUES
   ('52998224725', 'soja',  '2026-07-22', '123456789', 800, 'sc', 'XYZ9E87'),
   ('52998224725', 'arroz', '2026-07-25', '123456789', 300, 'sc', 'JKL4F56');
 
--- Contra-notas de exemplo
+-- Contra-notas de exemplo. O link começa com "/": a API completa com o próprio endereço
+-- e gera um PDF de exemplo na hora (ver index.js). Na produção, é o link do PDF real.
 INSERT INTO contra_notas (user_cpf, numero, data_emissao, arquivo_pdf_url)
 VALUES
-  ('52998224725', '000123', '2026-07-15T00:00:00Z', 'https://exemplo.com/contra-nota-000123.pdf'),
-  ('52998224725', '000124', '2026-07-18T00:00:00Z', 'https://exemplo.com/contra-nota-000124.pdf'),
-  ('52998224725', '000125', '2026-07-22T00:00:00Z', 'https://exemplo.com/contra-nota-000125.pdf');
+  ('52998224725', '000123', '2026-07-15T00:00:00Z', '/arquivos/contra-notas/exemplo/000123.pdf'),
+  ('52998224725', '000124', '2026-07-18T00:00:00Z', '/arquivos/contra-notas/exemplo/000124.pdf'),
+  ('52998224725', '000125', '2026-07-22T00:00:00Z', '/arquivos/contra-notas/exemplo/000125.pdf');
 
 -- Conferência rápida depois de rodar:
 -- SELECT * FROM users;

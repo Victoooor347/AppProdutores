@@ -8,7 +8,7 @@ const router = express.Router();
 // GET /me
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
   const result = await pool.query(
-    `SELECT cpf, name, telefone, propriedade FROM users WHERE cpf = $1`,
+    `SELECT cpf, name, email, telefone, propriedade FROM users WHERE cpf = $1`,
     [req.userCpf]
   );
 
@@ -20,14 +20,15 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
   return res.json(user);
 }));
 
-// PUT /me — CPF nunca é editável (vem do token, não do corpo da requisição)
+// PUT /me — CPF nunca é editável (vem do token, não do corpo da requisição).
+// O e-mail também não: ele é o canal de recuperação de senha e só muda pelo cadastro da empresa.
 router.put('/', requireAuth, asyncHandler(async (req, res) => {
   const { name, telefone, propriedade } = req.body;
 
   const result = await pool.query(
     `UPDATE users SET name = $1, telefone = $2, propriedade = $3
      WHERE cpf = $4
-     RETURNING cpf, name, telefone, propriedade`,
+     RETURNING cpf, name, email, telefone, propriedade`,
     [name, telefone, propriedade, req.userCpf]
   );
 

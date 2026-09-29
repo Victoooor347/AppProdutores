@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const PDFDocument = require('pdfkit');
+const { PDFDocument: PdfLibDocument } = require('pdf-lib');
 
 const STORAGE_DIR = path.join(__dirname, '..', '..', 'storage', 'relatorios');
 
@@ -98,4 +99,48 @@ function gerarPdfRelatorioCargas({ jobId, produtor, cargas }) {
   });
 }
 
-module.exports = { gerarPdfRelatorioCargas, STORAGE_DIR };
+/**
+ * Gera o PDF de EXEMPLO de uma contra-nota (só pra desenvolvimento: as contra-notas de
+ * verdade são PDFs que vêm do ERP). Usado pelos links de teste do seed.sql.
+ * @param {string} numero número da nota
+ * @returns {Promise<Buffer>}
+ */
+function gerarPdfContraNotaExemplo(numero) {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    const partes = [];
+    doc.on('data', (parte) => partes.push(parte));
+    doc.on('end', () => resolve(Buffer.concat(partes)));
+    doc.on('error', reject);
+
+    doc.fontSize(18).fillColor('#1a5c2e').text('Dickow Alimentos');
+    doc.fontSize(14).fillColor('#000').text(`Contra-nota Nº ${numero}`, { paragraphGap: 4 });
+    doc.moveDown(1);
+    doc.fontSize(10).fillColor('#9E9E9E');
+    doc.text('Documento de EXEMPLO gerado pela API de teste.');
+    doc.text('Na API de produção, este PDF é a contra-nota real, vinda do ERP.');
+    doc.end();
+  });
+}
+
+/**
+ * Junta vários PDFs (na ordem recebida) em um arquivo só e salva em disco,
+ * na mesma pasta dos relatórios (servida em /arquivos/relatorios).
+ * @param {{ jobId: string, pdfs: Buffer[] }} params
+ * @returns {Promise<string>} caminho absoluto do arquivo gerado
+ */
+async function juntarPdfs({ jobId, pdfs }) {
+  const final = await PdfLibDocument.create();
+
+  for (const bytes of pdfs) {
+    const origem = await PdfLibDocument.load(bytes);
+    const paginas = await final.copyPages(origem, origem.getPageIndices());
+    paginas.forEach((pagina) => final.addPage(pagina));
+  }
+
+  const filePath = path.join(STORAGE_DIR, `${jobId}.pdf`);
+  await fs.promises.writeFile(filePath, await final.save());
+  return filePath;
+}
+
+module.exports = { gerarPdfRelatorioCargas, gerarPdfContraNotaExemplo, juntarPdfs, STORAGE_DIR };

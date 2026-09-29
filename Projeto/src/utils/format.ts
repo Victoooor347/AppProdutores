@@ -25,21 +25,3 @@ export function formatDate(isoDate: string): string {
   }
   return new Date(isoDate).toLocaleDateString('pt-BR');
 }
-
-// Aplica a máscara DD/MM/AAAA enquanto o usuário digita.
-export function formatDateInput(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 8);
-  return digits
-    .replace(/(\d{2})(\d)/, '$1/$2')
-    .replace(/(\d{2})\/(\d{2})(\d)/, '$1/$2/$3');
-}
-
-// Converte "DD/MM/AAAA" (já com a máscara aplicada) para "AAAA-MM-DD",
-// formato que a API espera no filtro de data. Retorna undefined se a
-// data ainda não estiver completa.
-export function dateInputToIso(value: string): string | undefined {
-  const match = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if (!match) return undefined;
-  const [, day, month, year] = match;
-  return `${year}-${month}-${day}`;
-}

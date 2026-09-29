@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { themes } from '../../global/themes';
 import { style } from '../../global/styles'; // Importa os estilos do arquivo styles.ts para estilizar o componente SelectField

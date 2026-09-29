@@ -3,19 +3,13 @@ import { themes } from './themes';
 
 export const style = StyleSheet.create({
 
-  textCenter: {
-    alignItems: "center",
-    flex: 1
-  },
-
-
-    //Header dashboard, relatórios e contra-notas 
+    //Header dashboard, relatórios e contra-notas
+    //(o paddingTop é calculado no AppHeader, pela altura da barra de status de cada aparelho)
     containerH: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: themes.colors.verde,
         paddingHorizontal: 20,
-        paddingTop: 50,
         paddingBottom: 16,
         gap: 12,
     },
@@ -102,15 +96,18 @@ export const style = StyleSheet.create({
         color:themes.colors.branco,
         fontSize: 15,
     },
-    endPage: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 30,
+    linkLogin: {
+        color: themes.colors.verdeMedio,
+        fontSize: 15,
+        fontWeight: '600',
+        marginTop: 16,
+        padding: 4,
     },
 
 
 
     // Estilos TabArea
+    //(a altura e o paddingBottom somam a área da barra de navegação do celular — ver CustomTabBar)
     tabArea: {
         flexDirection: "row",
         height: 80,
@@ -249,7 +246,6 @@ export const style = StyleSheet.create({
 
     //Estilos página de relatórios
     screenRel: {
-    paddingTop: -100,
     flex: 1,
     backgroundColor: themes.colors.branco,
     },
@@ -294,6 +290,33 @@ export const style = StyleSheet.create({
       fontWeight: '400',
       color: themes.colors.cinzaTexto,
     },
+    resumoLoadingRel: {
+      alignSelf: 'flex-start',
+      height: 21,
+    },
+    //Linha "X encontradas" + botão "Selecionar todas" (usada também nas Contra-Notas)
+    contadorRowRel: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      minHeight: 32,
+    },
+    contadorRel: {
+      fontSize: 12,
+      color: themes.colors.cinzaTexto,
+    },
+    selecionarTodasRel: {
+      paddingVertical: 6,
+      paddingLeft: 12,
+      minWidth: 110,
+      alignItems: 'flex-end',
+    },
+    selecionarTodasTextRel: {
+      color: themes.colors.verdeMedio,
+      fontWeight: '600',
+      fontSize: 13,
+    },
     filterBarRel: {
       flexDirection: 'row',
       gap: 8,
@@ -301,21 +324,6 @@ export const style = StyleSheet.create({
       borderRadius: 10,
       padding: 8,
       marginBottom: 16,
-    },
-    dateFieldRel: {
-      flex: 1,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: themes.colors.branco,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-    },
-    dateInputRel: {
-      flex: 1,
-      color: themes.colors.preto,
-      fontSize: 14,
-      paddingVertical: 10,
     },
     centeredRel: {
       paddingVertical: 40,
@@ -390,6 +398,20 @@ export const style = StyleSheet.create({
     errorTextRel: {
       color: themes.colors.erro,
     },
+    errorHintRel: {
+      color: themes.colors.erro,
+      fontSize: 12,
+      marginTop: 6,
+    },
+    footerListaRel: {
+      paddingVertical: 16,
+      alignItems: 'center',
+    },
+    retryTextRel: {
+      color: themes.colors.verdeMedio,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
     emptyBoxRel: {
       padding: 24,
       alignItems: 'center',
@@ -416,11 +438,26 @@ export const style = StyleSheet.create({
       padding: 20,
       paddingBottom: 40,
     },
+    titleRowCN: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingTop: 16,
+      marginBottom: 12,
+    },
     titleCN: {
       fontSize: 18,
       fontWeight: 'bold',
       color: themes.colors.verde,
-      marginBottom: 16,
+    },
+    filterBarCN: {
+      flexDirection: 'row',
+      backgroundColor: themes.colors.verde,
+      borderRadius: 10,
+      padding: 8,
+      marginHorizontal: 20,
+      marginBottom: 8,
     },
     centeredCN: {
       paddingVertical: 40,
@@ -432,6 +469,18 @@ export const style = StyleSheet.create({
       paddingVertical: 20,
       alignItems: 'center',
       marginBottom: 16,
+      // Borda sempre presente (transparente) pra o card não "pular" quando fica selecionado
+      borderWidth: 1.5,
+      borderColor: 'transparent',
+    },
+    cardSelectedCN: {
+      borderColor: themes.colors.verdeMedio,
+    },
+    // Caixinha de seleção no canto do card (o visual vem do checkboxRel)
+    checkboxPosicaoCN: {
+      position: 'absolute',
+      top: 14,
+      left: 14,
     },
     cardTitleCN: {
       fontSize: 18,
@@ -463,6 +512,20 @@ export const style = StyleSheet.create({
     errorTextCN: {
       color: themes.colors.erro,
     },
+    errorHintCN: {
+      color: themes.colors.erro,
+      fontSize: 12,
+      marginTop: 6,
+    },
+    footerListaCN: {
+      paddingVertical: 16,
+      alignItems: 'center',
+    },
+    retryTextCN: {
+      color: themes.colors.verdeMedio,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
     emptyBoxCN: {
       padding: 24,
       alignItems: 'center',
@@ -478,9 +541,11 @@ export const style = StyleSheet.create({
 
     //Estilos página de usuario
   screenUser: {
-    paddingTop: -100,
     flex: 1,
     backgroundColor: themes.colors.branco,
+  },
+  keyboardUser: {
+    flex: 1,
   },
   contentUser: {
     padding: 20,
@@ -568,6 +633,86 @@ export const style = StyleSheet.create({
   errorTextUser: {
     color: themes.colors.erro,
   },  
+
+
+
+  //Estilos das telas de primeiro acesso e recuperação de senha (solicitarCodigo e confirmarCodigo)
+  screenAuth: {
+    flex: 1,
+    backgroundColor: themes.colors.branco,
+  },
+  contentAuth: {
+    padding: 24,
+    paddingBottom: 40,
+  },
+  titleAuth: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: themes.colors.verde,
+    marginBottom: 8,
+  },
+  textAuth: {
+    fontSize: 14,
+    color: themes.colors.cinzaTexto,
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  destaqueAuth: {
+    fontWeight: 'bold',
+    color: themes.colors.preto,
+  },
+  labelAuth: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: themes.colors.cinzaTexto,
+    marginBottom: 6,
+  },
+  inputAuth: {
+    backgroundColor: themes.colors.cinzaBg,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: themes.colors.preto,
+    marginBottom: 16,
+  },
+  inputCodigoAuth: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    letterSpacing: 8,
+    textAlign: 'center',
+  },
+  buttonAuth: {
+    backgroundColor: themes.colors.verdeMedio,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonDisabledAuth: {
+    opacity: 0.5,
+  },
+  buttonTextAuth: {
+    color: themes.colors.branco,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  linkAuth: {
+    color: themes.colors.verdeMedio,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 20,
+    padding: 4,
+  },
+  linkDisabledAuth: {
+    color: themes.colors.cinzaMedio,
+  },
+  footnoteAuth: {
+    fontSize: 12,
+    color: themes.colors.cinzaMedio,
+    textAlign: 'center',
+    marginTop: 24,
+  },
 
 
 

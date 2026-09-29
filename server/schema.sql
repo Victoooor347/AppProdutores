@@ -1,5 +1,5 @@
 -- =========================================================
--- AppProdutores — schema de banco (baseado no contrato-api-rascunho.md)
+-- AppProdutores — schema de banco (baseado no contrato-api.md)
 -- Rode isso no SQL Editor do Neon, ou via psql:
 --   psql "postgresql://usuario:senha@host/dbname" -f schema.sql
 -- =========================================================
@@ -9,10 +9,13 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- necessário para gen_random_uuid()
 -- ---------------------------------------------------------
 -- 1. Usuários (produtores)
 -- ---------------------------------------------------------
+-- O produtor é cadastrado pela empresa (CPF, nome e e-mail, vindos do ERP) SEM senha.
+-- Ele cria a senha no app, no "primeiro acesso", com um código enviado para esse e-mail.
 CREATE TABLE users (
   cpf            CHAR(11) PRIMARY KEY,           -- só os 11 dígitos, sem máscara
-  password_hash  TEXT NOT NULL,                  -- NUNCA guardar senha em texto puro (usar bcrypt/argon2 na API)
+  password_hash  TEXT,                           -- NULL até o primeiro acesso. NUNCA guardar senha em texto puro (usar bcrypt/argon2 na API)
   name           TEXT NOT NULL,
+  email          TEXT,                           -- para onde vão os códigos de primeiro acesso / recuperação de senha
   telefone       TEXT,
   propriedade    TEXT,
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -34,6 +37,23 @@ CREATE TABLE sessions (
 
 CREATE INDEX idx_sessions_user_cpf ON sessions(user_cpf);
 CREATE INDEX idx_sessions_token_hash ON sessions(token_hash);
+
+-- ---------------------------------------------------------
+-- 2b. Códigos enviados por e-mail (primeiro acesso e recuperação de senha)
+--     — só o código mais recente de cada CPF/finalidade vale.
+-- ---------------------------------------------------------
+CREATE TABLE verification_codes (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_cpf    CHAR(11) NOT NULL REFERENCES users(cpf) ON DELETE CASCADE,
+  purpose     TEXT NOT NULL,                     -- 'primeiro_acesso' | 'recuperar_senha'
+  code_hash   TEXT NOT NULL,                     -- HASH do código (bcrypt), nunca o código puro
+  expires_at  TIMESTAMPTZ NOT NULL,
+  attempts    INT NOT NULL DEFAULT 0,            -- quantas vezes digitaram o código errado
+  used_at     TIMESTAMPTZ,                       -- preenchido quando o código é usado (uso único)
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_verification_codes_user ON verification_codes(user_cpf, purpose, created_at);
 
 -- ---------------------------------------------------------
 -- 3. Preço do dia (Dashboard) — não tem interface de admin,

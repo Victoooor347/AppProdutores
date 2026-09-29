@@ -107,7 +107,8 @@ export default function Dashboard() {
                   <View style={style.priceRowDB}>
                     <Text style={style.commodityNameDB}>{item.nomeExibicao}</Text>
                     <Text style={style.commodityPriceDB}>{formatCurrency(item.preco)}*</Text>
-                    {item.descricao && (
+                    {/* !! evita quebrar a tela se a API mandar descricao vazia ("") */}
+                    {!!item.descricao && (
                       <Text style={style.commodityDescriptionDB}>{item.descricao}**</Text>
                     )}
                   </View>

@@ -3,20 +3,20 @@ import {
   View,
   Text,
   TextInput, // Componente que permite criar campos de entrada de texto
-  TouchableOpacity, // Componente que permite criar botões e áreas clicáveis
   ActivityIndicator, // Componente que exibe um indicador de carregamento (spinner)
   ScrollView, // Componente que permite criar uma área rolável para exibir conteúdo maior que a tela
-  Alert,
-  Pressable, // Componente para exibir alertas e mensagens de erro
+  Alert, // Componente para exibir alertas e mensagens de erro
+  Pressable, // Componente que permite criar áreas clicáveis
   KeyboardAvoidingView, // Componente que ajusta a interface quando o teclado é exibido
+  Platform, // Permite detectar a plataforma (iOS ou Android)
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context'; // Componente que garante que o conteúdo seja exibido dentro da área segura da tela, evitando sobreposição com a barra de status e outros elementos do sistema
 import { useAuth } from '../context/authContext'; // Importa o hook useAuth do contexto de autenticação para acessar informações do usuário e funções relacionadas à autenticação
 import { getProfile, updateProfile } from '../services/userService'; // Importa as funções getProfile e updateProfile do serviço de usuário para buscar e atualizar o perfil do usuário
 import { UserProfile } from '../types/userprofile'; // Importa o tipo UserProfile que define a estrutura do perfil do usuário
 import { themes } from '../global/themes';
 import AppHeader from '../components/AppHeader'; // Importa o componente AppHeader que exibe o cabeçalho da aplicação
 import { style } from '../global/styles';
+import { formatCpf } from '../utils/validators'; // Aplica a máscara 000.000.000-00 no CPF que vem da API só com números
 
 export default function User() {
   // Contexto de autenticação
@@ -96,10 +96,19 @@ export default function User() {
   }
 
   return (
-    <SafeAreaView style={style.screenUser}>
+    <View style={style.screenUser}>
       <AppHeader title="Dickow Produtores" />
 
-      <KeyboardAvoidingView contentContainerStyle={style.contentUser}>
+      {/* Mesmo esquema da tela de login: o KeyboardAvoidingView encolhe a área quando o
+          teclado abre, e o ScrollView deixa rolar até o campo que está sendo digitado. */}
+      <KeyboardAvoidingView
+        style={style.keyboardUser}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={style.contentUser}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text style={style.titleUser}>Meu Perfil</Text>
 
         {isLoading ? (
@@ -115,9 +124,20 @@ export default function User() {
             <View style={style.fieldUser}>
               <Text style={style.labelUser}>CPF</Text>
               <View style={[style.inputUser, style.inputDisabledUser]}>
-                <Text style={style.inputDisabledTextUser}>{profile?.cpf}</Text>
+                <Text style={style.inputDisabledTextUser}>{formatCpf(profile?.cpf ?? '')}</Text>
               </View>
               <Text style={style.helperTextUser}>O CPF não pode ser alterado.</Text>
+            </View>
+
+            {/* E-mail só pra consulta: é pra onde vão os códigos de acesso, e só a empresa altera */}
+            <View style={style.fieldUser}>
+              <Text style={style.labelUser}>E-mail</Text>
+              <View style={[style.inputUser, style.inputDisabledUser]}>
+                <Text style={style.inputDisabledTextUser}>{profile?.email || 'Não cadastrado'}</Text>
+              </View>
+              <Text style={style.helperTextUser}>
+                Os códigos de acesso chegam neste e-mail. Para trocar, fale com a Dickow.
+              </Text>
             </View>
 
             <View style={style.fieldUser}>
@@ -171,7 +191,8 @@ export default function User() {
         <Pressable style={style.signOutButtonUser} onPress={handleSignOut}>
           <Text style={style.signOutButtonTextUser}>Sair da conta</Text>
         </Pressable>
+        </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

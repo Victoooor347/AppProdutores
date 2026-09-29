@@ -1,17 +1,31 @@
-import { api, ApiError } from './api'; // Importa a instância da API e o tipo ApiError do arquivo api.ts, que são usados para fazer requisições HTTP e tratar erros da API.
+import { api } from './api'; // Importa a instância da API, usada para fazer requisições HTTP.
 import { UserProfile, UserProfileUpdate } from '../types/userprofile'; // Importa os tipos UserProfile e UserProfileUpdate que definem a estrutura do perfil do usuário e as atualizações possíveis no perfil.
+
+// Tipo que representa os dados brutos do perfil recebidos da API
+// (e-mail, telefone e propriedade podem vir null quando não foram preenchidos).
+type RawUserProfile = {
+  cpf: string;
+  name: string | null;
+  email?: string | null;
+  telefone: string | null;
+  propriedade: string | null;
+};
+
+// Função que mapeia o perfil bruto da API para o formato do app, trocando null por texto vazio
+// (os campos da tela sempre trabalham com string).
+function mapProfile(raw: RawUserProfile): UserProfile {
+  return {
+    cpf: raw.cpf,
+    name: raw.name ?? '',
+    email: raw.email ?? '',
+    telefone: raw.telefone ?? '',
+    propriedade: raw.propriedade ?? '',
+  };
+}
 
 // Função que busca o perfil do usuário autenticado, retornando os dados do perfil.
 export async function getProfile(token: string): Promise<UserProfile> {
-  try {
-    return await api.get<UserProfile>('/me', token);
-  } catch (error) {
-    const apiError = error as ApiError;
-    // if (apiError.message === 'API_URL_NOT_CONFIGURED') {
-    //   return mockGetProfile();
-    // }
-    throw error;
-  }
+  return mapProfile(await api.get<RawUserProfile>('/me', token));
 }
 
 // Função que atualiza o perfil do usuário autenticado com os dados fornecidos, retornando o perfil atualizado.
@@ -19,31 +33,5 @@ export async function updateProfile(
   updates: UserProfileUpdate,
   token: string
 ): Promise<UserProfile> {
-  try {
-    return await api.put<UserProfile>('/me', updates, token);
-  } catch (error) {
-    const apiError = error as ApiError;
-    // if (apiError.message === 'API_URL_NOT_CONFIGURED') {
-    //   return mockUpdateProfile(updates);
-    // }
-    throw error;
-  }
+  return mapProfile(await api.put<RawUserProfile>('/me', updates, token));
 }
-
-// let mockProfile: UserProfile = {
-//   cpf: 'V',
-//   name: 'Produtor de Teste',
-//   telefone: '11999999999',
-//   propriedade: 'Fazenda Exemplo',
-// };
-
-// async function mockGetProfile(): Promise<UserProfile> {
-//   await new Promise((resolve) => setTimeout(resolve, 300));
-//   return mockProfile;
-// }
-
-// async function mockUpdateProfile(updates: UserProfileUpdate): Promise<UserProfile> {
-//   await new Promise((resolve) => setTimeout(resolve, 300));
-//   mockProfile = { ...mockProfile, ...updates };
-//   return mockProfile;
-// }

@@ -5,11 +5,13 @@ import ContraNotas from "../pages/contraNotas";
 import User from "../pages/users";
 import CustomTabBar from "../components/CustomTabBar";
 
+// Fica fora do componente de propósito: criado lá dentro, o navegador seria recriado a cada
+// renderização e o React Navigation remontaria todas as abas (perdendo o estado delas).
+const Tab = createBottomTabNavigator();
+
 // Componente que define as rotas de navegação inferior (Bottom Tab Navigator) da aplicação,
 // incluindo as telas Dashboard, Relatórios, ContraNotas e User.
 export default function BottomRoutes() {
-    const Tab = createBottomTabNavigator();
-
     return (
         <Tab.Navigator
             screenOptions={{headerShown:false}}

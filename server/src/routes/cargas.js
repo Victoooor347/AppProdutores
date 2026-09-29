@@ -5,7 +5,7 @@ const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET /cargas/resumo?ano=2026
+// GET /cargas/resumo?ano=2026 — totais por cultura + IEs com entregas no ano
 router.get('/resumo', requireAuth, asyncHandler(async (req, res) => {
   const ano = req.query.ano ? Number(req.query.ano) : new Date().getFullYear();
 
@@ -23,7 +23,20 @@ router.get('/resumo', requireAuth, asyncHandler(async (req, res) => {
     unidade: row.unidade || 'sc',
   }));
 
-  return res.json({ data });
+  // IEs com entregas no ano — o app usa pra montar as opções do filtro de IE,
+  // sem precisar baixar a lista inteira de cargas só pra descobrir quais existem.
+  const iesResult = await pool.query(
+    `SELECT DISTINCT inscricao_estadual
+     FROM cargas
+     WHERE user_cpf = $1 AND EXTRACT(YEAR FROM data) = $2
+     ORDER BY inscricao_estadual`,
+    [req.userCpf, ano]
+  );
+
+  return res.json({
+    data,
+    inscricoes_estaduais: iesResult.rows.map((row) => row.inscricao_estadual),
+  });
 }));
 
 // GET /cargas?page=1&per_page=20&ano=&inscricao_estadual=&cultura=&data=
@@ -69,7 +82,7 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
     `SELECT id, cultura, data, inscricao_estadual, quantidade, unidade, placa
      FROM cargas
      WHERE ${whereClause}
-     ORDER BY data DESC
+     ORDER BY data DESC, id DESC -- o id desempata cargas do mesmo dia, pra paginação não repetir/pular nenhuma
      LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
     listParams
   );

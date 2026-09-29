@@ -19,6 +19,12 @@ export type ResumoCultura = {
   unidade: string;
 };
 
+// Tipo que representa o resumo do ano: totais por cultura e as IEs com entregas no ano.
+export type ResumoCargas = {
+  totais: ResumoCultura[];
+  inscricoesEstaduais: string[];
+};
+
 // Tipo que representa os filtros possíveis para listagem de cargas.
 export type CargasFiltros = {
   page?: number;
@@ -44,12 +50,5 @@ export type CargasResponse = {
   pagination: Pagination;
 };
 
-// Tipo que representa o status do job de geração de PDF.
-export type GerarPdfJobStatus = 'processando' | 'pronto' | 'erro';
-
-// Tipo que representa o job de geração de PDF.
-export type GerarPdfJob = {
-  jobId: string;
-  status: GerarPdfJobStatus;
-  arquivoPdfUrl?: string;
-};
+// O job de geração de PDF agora é usado também pelas contra-notas: fica em types/pdf.ts.
+export type { GerarPdfJob, GerarPdfJobStatus } from './pdf';

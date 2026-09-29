@@ -10,6 +10,9 @@ export type ContraNota = {
 export type ContraNotasFiltros = {
   page?: number;
   perPage?: number;
+  ano?: number;
+  dataInicio?: string; // "AAAA-MM-DD", inclusive
+  dataFim?: string; // "AAAA-MM-DD", inclusive
 };
 
 // Tipo que representa a resposta da listagem de contra notas.

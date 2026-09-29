@@ -1,6 +1,13 @@
-import { api, ApiError } from './api'; // Importa a instância da API e o tipo ApiError do arquivo api.ts, que são usados para fazer requisições HTTP e tratar erros da API.
+import { api, buildQuery } from './api'; // Importa a instância da API (requisições HTTP) e a função que monta a query string das URLs.
 import { ContraNota, ContraNotasFiltros, ContraNotasResponse } from '../types/contranotas'; // Importa os tipos ContraNota, ContraNotasFiltros e ContraNotasResponse que definem a estrutura das contra notas, os filtros possíveis para listagem e a resposta paginada da listagem de contra notas.
-import { mapPagination, RawPagination } from '../utils/apiMappers'; // Importa a função mapPagination e o tipo RawPagination do arquivo apiMappers.ts, que são usados para mapear a paginação da resposta da API para o formato esperado pelo frontend.
+import { GerarPdfJob } from '../types/pdf'; // Job de geração do PDF com as notas juntas.
+import {
+  mapPagination,
+  mapPdfJob,
+  RawGerarPdfJob,
+  RawPagination,
+} from '../utils/apiMappers'; // Conversões da API pro formato do app: paginação e job de geração de PDF.
+import { buscarTodasAsPaginas } from './paginacao'; // Busca todas as páginas de uma lista (usado no "Selecionar todas").
 
 // Tipo que representa os dados brutos da contra nota recebidos da API.
 type RawContraNota = {
@@ -20,73 +27,57 @@ function mapContraNota(raw: RawContraNota): ContraNota {
   };
 }
 
-// Função auxiliar que constrói uma query string a partir de um objeto de parâmetros, ignorando valores undefined, null ou vazios.
-function buildQuery(params: Record<string, string | number | undefined>): string {
-  const search = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      search.append(key, String(value));
-    }
-  });
-  const query = search.toString();
-  return query ? `?${query}` : '';
-}
-
 // Função que lista as contra notas com base nos filtros fornecidos, retornando uma resposta paginada.
 export async function listContraNotas(
   filtros: ContraNotasFiltros,
   token: string
 ): Promise<ContraNotasResponse> {
-  try {
-    const query = buildQuery({ page: filtros.page, per_page: filtros.perPage });
-    const response = await api.get<{ data: RawContraNota[]; pagination: RawPagination }>(
-      `/contra-notas${query}`,
-      token
-    );
-    return {
-      data: response.data.map(mapContraNota),
-      pagination: mapPagination(response.pagination),
-    };
-  } catch (error) {
-    const apiError = error as ApiError;
-    // if (apiError.message === 'API_URL_NOT_CONFIGURED') {
-    //   return mockListContraNotas(filtros);
-    // }
-    throw error;
-  }
+  const query = buildQuery({
+    page: filtros.page,
+    per_page: filtros.perPage,
+    ano: filtros.ano,
+    data_inicio: filtros.dataInicio,
+    data_fim: filtros.dataFim,
+  });
+  const response = await api.get<{ data: RawContraNota[]; pagination: RawPagination }>(
+    `/contra-notas${query}`,
+    token
+  );
+  return {
+    data: response.data.map(mapContraNota),
+    pagination: mapPagination(response.pagination),
+  };
 }
 
-// async function mockListContraNotas(filtros: ContraNotasFiltros): Promise<ContraNotasResponse> {
-//   await new Promise((resolve) => setTimeout(resolve, 500));
+// IDs de TODAS as contra-notas que o filtro encontra (todas as páginas) — usado no "Selecionar todas".
+export async function listarIdsContraNotas(
+  filtros: ContraNotasFiltros,
+  token: string
+): Promise<string[]> {
+  const notas = await buscarTodasAsPaginas((page, perPage) =>
+    listContraNotas({ ...filtros, page, perPage }, token)
+  );
+  return Array.from(new Set(notas.map((nota) => nota.id)));
+}
 
-//   const todas = [
-//     {
-//       id: 'cn_001',
-//       numero: '000123',
-//       dataEmissao: '2026-07-15T00:00:00Z',
-//       arquivoPdfUrl: 'https://exemplo.com/mock/contra-nota-000123.pdf',
-//     },
-//     {
-//       id: 'cn_002',
-//       numero: '000124',
-//       dataEmissao: '2026-07-18T00:00:00Z',
-//       arquivoPdfUrl: 'https://exemplo.com/mock/contra-nota-000124.pdf',
-//     },
-//     {
-//       id: 'cn_003',
-//       numero: '000125',
-//       dataEmissao: '2026-07-22T00:00:00Z',
-//       arquivoPdfUrl: 'https://exemplo.com/mock/contra-nota-000125.pdf',
-//     },
-//   ];
+// Inicia a geração do PDF único com as contra-notas selecionadas juntas.
+export async function gerarPdfContraNotas(
+  contraNotaIds: string[],
+  token: string
+): Promise<GerarPdfJob> {
+  const response = await api.post<RawGerarPdfJob>(
+    '/contra-notas/gerar-pdf',
+    { contra_nota_ids: contraNotaIds },
+    token
+  );
+  return mapPdfJob(response);
+}
 
-//   return {
-//     data: todas,
-//     pagination: {
-//       page: filtros.page ?? 1,
-//       perPage: filtros.perPage ?? 20,
-//       totalItems: todas.length,
-//       totalPages: 1,
-//     },
-//   };
-// }
+// Consulta o status da geração do PDF das contra-notas (polling).
+export async function consultarJobPdfContraNotas(
+  jobId: string,
+  token: string
+): Promise<GerarPdfJob> {
+  const response = await api.get<RawGerarPdfJob>(`/contra-notas/gerar-pdf/${jobId}`, token);
+  return mapPdfJob(response);
+}

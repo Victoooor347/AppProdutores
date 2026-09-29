@@ -1,1 +1,7 @@
-npm test
+# Roda antes de cada commit. O Git executa os hooks a partir da raiz do repositório
+# (onde fica o .git), então primeiro entra na pasta do app.
+cd Projeto
+
+# Nos arquivos que vão entrar no commit: corrige o que der com o ESLint, formata com o
+# Prettier e roda os testes relacionados a eles (configuração em "lint-staged" no package.json).
+npx lint-staged
