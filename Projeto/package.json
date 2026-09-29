@@ -47,12 +47,12 @@
   "private": true,
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write",
-      "jest --bail --findRelatedTests --passWithNoTests"
+      "node node_modules/eslint/bin/eslint.js --fix",
+      "node node_modules/prettier/bin/prettier.cjs --write",
+      "node node_modules/jest/bin/jest.js --bail --findRelatedTests --passWithNoTests"
     ],
     "*.{json,md}": [
-      "prettier --write"
+      "node node_modules/prettier/bin/prettier.cjs --write"
     ]
   }
 }
