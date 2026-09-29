@@ -5,7 +5,10 @@ import { buscarTodasAsPaginas } from '../paginacao';
 function apiComItens(total: number) {
   return jest.fn(async (page: number, perPage: number) => {
     const inicio = (page - 1) * perPage;
-    const data = Array.from({ length: Math.max(0, Math.min(perPage, total - inicio)) }, (_, i) => inicio + i + 1);
+    const data = Array.from(
+      { length: Math.max(0, Math.min(perPage, total - inicio)) },
+      (_, i) => inicio + i + 1
+    );
     return { data, pagination: { totalPages: Math.max(1, Math.ceil(total / perPage)) } };
   });
 }
@@ -19,7 +22,11 @@ describe('buscarTodasAsPaginas', () => {
     expect(itens).toHaveLength(250);
     expect(itens[0]).toBe(1);
     expect(itens[249]).toBe(250);
-    expect(buscarPagina.mock.calls).toEqual([[1, 100], [2, 100], [3, 100]]);
+    expect(buscarPagina.mock.calls).toEqual([
+      [1, 100],
+      [2, 100],
+      [3, 100],
+    ]);
   });
 
   it('com uma página só, faz uma chamada', async () => {

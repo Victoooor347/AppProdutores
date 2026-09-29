@@ -39,29 +39,25 @@ export default function Routes() {
       screenOptions={{
         headerShown: false,
         cardStyle: {
-          backgroundColor: '#FFF'
-        }
-      }}>
-
+          backgroundColor: '#FFF',
+        },
+      }}
+    >
       {isAuthenticated ? (
-        <Stack.Screen
-          name="BottomRoutes"
-          component={BottomRoutes}
-        />
+        <Stack.Screen name="BottomRoutes" component={BottomRoutes} />
       ) : (
         // Telas de quem ainda não entrou: login, primeiro acesso e recuperação de senha
         <>
-          <Stack.Screen
-            name="Login"
-            component={Login}
-          />
+          <Stack.Screen name="Login" component={Login} />
           <Stack.Screen
             name="SolicitarCodigo"
             component={SolicitarCodigo}
             options={({ route }) => ({
               ...opcoesTelaCodigo,
               title:
-                route.params.finalidade === 'primeiro_acesso' ? 'Primeiro acesso' : 'Esqueci minha senha',
+                route.params.finalidade === 'primeiro_acesso'
+                  ? 'Primeiro acesso'
+                  : 'Esqueci minha senha',
             })}
           />
           <Stack.Screen
@@ -72,6 +68,5 @@ export default function Routes() {
         </>
       )}
     </Stack.Navigator>
-  )
-
+  );
 }

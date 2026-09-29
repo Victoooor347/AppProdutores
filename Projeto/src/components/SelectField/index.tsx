@@ -35,8 +35,17 @@ export default function SelectField<T extends string>({
         </Text>
         <Ionicons name="chevron-down" size={16} color={themes.colors.cinzaTexto} />
       </TouchableOpacity>
-      <Modal visible={isOpen} transparent animationType="fade" onRequestClose={() => setIsOpen(false)}>
-        <TouchableOpacity style={style.backdropSF} activeOpacity={1} onPress={() => setIsOpen(false)}>
+      <Modal
+        visible={isOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsOpen(false)}
+      >
+        <TouchableOpacity
+          style={style.backdropSF}
+          activeOpacity={1}
+          onPress={() => setIsOpen(false)}
+        >
           <View style={style.sheetSF}>
             <Text style={style.sheetTitleSF}>{label}</Text>
             <FlatList
@@ -52,10 +61,7 @@ export default function SelectField<T extends string>({
                   }}
                 >
                   <Text
-                    style={[
-                      style.optionTextSF,
-                      item.value === value && style.optionTextSelectedSF,
-                    ]}
+                    style={[style.optionTextSF, item.value === value && style.optionTextSelectedSF]}
                   >
                     {item.label}
                   </Text>

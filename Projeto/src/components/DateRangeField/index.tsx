@@ -79,13 +79,20 @@ export default function DateRangeField({ value, onChange }: Props) {
         <Ionicons name="calendar-outline" size={18} color={themes.colors.cinzaTexto} />
       </TouchableOpacity>
 
-      <Modal visible={isOpen} transparent animationType="fade" onRequestClose={() => setIsOpen(false)}>
-        <TouchableOpacity style={style.backdropCal} activeOpacity={1} onPress={() => setIsOpen(false)}>
+      <Modal
+        visible={isOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsOpen(false)}
+      >
+        <TouchableOpacity
+          style={style.backdropCal}
+          activeOpacity={1}
+          onPress={() => setIsOpen(false)}
+        >
           <TouchableOpacity activeOpacity={1} style={style.sheetCal}>
             <Text style={style.sheetTitleCal}>Selecione o período</Text>
-            <Text style={style.sheetSubtitleCal}>
-              Toque no dia inicial e depois no dia final
-            </Text>
+            <Text style={style.sheetSubtitleCal}>Toque no dia inicial e depois no dia final</Text>
 
             <Calendar
               markingType="period"

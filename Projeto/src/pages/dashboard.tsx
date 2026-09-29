@@ -1,22 +1,22 @@
-import React, { 
+import React, {
   useCallback, // memorizar a função de carregamento de preços
   useEffect, // executa efeitos colaterais, como carregar dados ao montar o componente
-  useState  // para gerenciar o estado local do componente
+  useState, // para gerenciar o estado local do componente
 } from 'react';
-import { 
-  View, 
-  Text, 
+import {
+  View,
+  Text,
   ActivityIndicator, // exibe um indicador de carregamento enquanto os dados estão sendo buscados
   RefreshControl, // permite atualizar os dados da tela com um gesto de "pull to refresh"
   ScrollView, // permite rolar o conteúdo da tela caso ele ultrapasse o tamanho da tela
   ImageBackground, // permite exibir uma imagem de fundo para o conteúdo da tela
-  Image 
+  Image,
 } from 'react-native';
 import { useAuth } from '../context/authContext'; // Importa o hook useAuth do contexto de autenticação para acessar funções e estados relacionados à autenticação
 import { getPrecosDoDia } from '../services/precosService'; // Importa a função getPrecosDoDia do serviço de preços para buscar os dados dos preços do dia da API
 import { PrecoDia } from '../types/precos'; // Importa o tipo PrecoDia para tipar os dados dos preços do dia recebidos da API
 import { formatCurrency, formatDateTime } from '../utils/format'; // Importa as funções formatCurrency e formatDateTime para formatar valores monetários e datas em um formato legível para o usuário
-import { themes } from '../global/themes'; 
+import { themes } from '../global/themes';
 import { style } from '../global/styles';
 import AppHeader from '../components/AppHeader'; // Importa o componente AppHeader para exibir o cabeçalho da tela
 import cotacoes from '../assets/cotacoes.png'; // Importa a imagem de cotações para exibir como fundo do painel de preços

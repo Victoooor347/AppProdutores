@@ -105,92 +105,94 @@ export default function User() {
         style={style.keyboardUser}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView
-          contentContainerStyle={style.contentUser}
-          keyboardShouldPersistTaps="handled"
-        >
-        <Text style={style.titleUser}>Meu Perfil</Text>
+        <ScrollView contentContainerStyle={style.contentUser} keyboardShouldPersistTaps="handled">
+          <Text style={style.titleUser}>Meu Perfil</Text>
 
-        {isLoading ? (
-          <View style={style.centeredUser}>
-            <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
-          </View>
-        ) : errorMessage ? (
-          <View style={style.errorBoxUser}>
-            <Text style={style.errorTextUser}>{errorMessage}</Text>
-          </View>
-        ) : (
-          <>
-            <View style={style.fieldUser}>
-              <Text style={style.labelUser}>CPF</Text>
-              <View style={[style.inputUser, style.inputDisabledUser]}>
-                <Text style={style.inputDisabledTextUser}>{formatCpf(profile?.cpf ?? '')}</Text>
+          {isLoading ? (
+            <View style={style.centeredUser}>
+              <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
+            </View>
+          ) : errorMessage ? (
+            <View style={style.errorBoxUser}>
+              <Text style={style.errorTextUser}>{errorMessage}</Text>
+            </View>
+          ) : (
+            <>
+              <View style={style.fieldUser}>
+                <Text style={style.labelUser}>CPF</Text>
+                <View style={[style.inputUser, style.inputDisabledUser]}>
+                  <Text style={style.inputDisabledTextUser}>{formatCpf(profile?.cpf ?? '')}</Text>
+                </View>
+                <Text style={style.helperTextUser}>O CPF não pode ser alterado.</Text>
               </View>
-              <Text style={style.helperTextUser}>O CPF não pode ser alterado.</Text>
-            </View>
 
-            {/* E-mail só pra consulta: é pra onde vão os códigos de acesso, e só a empresa altera */}
-            <View style={style.fieldUser}>
-              <Text style={style.labelUser}>E-mail</Text>
-              <View style={[style.inputUser, style.inputDisabledUser]}>
-                <Text style={style.inputDisabledTextUser}>{profile?.email || 'Não cadastrado'}</Text>
+              {/* E-mail só pra consulta: é pra onde vão os códigos de acesso, e só a empresa altera */}
+              <View style={style.fieldUser}>
+                <Text style={style.labelUser}>E-mail</Text>
+                <View style={[style.inputUser, style.inputDisabledUser]}>
+                  <Text style={style.inputDisabledTextUser}>
+                    {profile?.email || 'Não cadastrado'}
+                  </Text>
+                </View>
+                <Text style={style.helperTextUser}>
+                  Os códigos de acesso chegam neste e-mail. Para trocar, fale com a Dickow.
+                </Text>
               </View>
-              <Text style={style.helperTextUser}>
-                Os códigos de acesso chegam neste e-mail. Para trocar, fale com a Dickow.
-              </Text>
-            </View>
 
-            <View style={style.fieldUser}>
-              <Text style={style.labelUser}>Nome</Text>
-              <TextInput
-                style={style.inputUser}
-                value={name}
-                onChangeText={setName}
-                placeholder="Seu nome"
-                placeholderTextColor={themes.colors.cinzaMedio}
-              />
-            </View>
+              <View style={style.fieldUser}>
+                <Text style={style.labelUser}>Nome</Text>
+                <TextInput
+                  style={style.inputUser}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Seu nome"
+                  placeholderTextColor={themes.colors.cinzaMedio}
+                />
+              </View>
 
-            <View style={style.fieldUser}>
-              <Text style={style.labelUser}>Telefone</Text>
-              <TextInput
-                style={style.inputUser}
-                value={telefone}
-                onChangeText={setTelefone}
-                placeholder="(00) 00000-0000"
-                placeholderTextColor={themes.colors.cinzaMedio}
-                keyboardType="phone-pad"
-              />
-            </View>
+              <View style={style.fieldUser}>
+                <Text style={style.labelUser}>Telefone</Text>
+                <TextInput
+                  style={style.inputUser}
+                  value={telefone}
+                  onChangeText={setTelefone}
+                  placeholder="(00) 00000-0000"
+                  placeholderTextColor={themes.colors.cinzaMedio}
+                  keyboardType="phone-pad"
+                />
+              </View>
 
-            <View style={style.fieldUser}>
-              <Text style={style.labelUser}>Propriedade</Text>
-              <TextInput
-                style={style.inputUser}
-                value={propriedade}
-                onChangeText={setPropriedade}
-                placeholder="Nome da fazenda/propriedade"
-                placeholderTextColor={themes.colors.cinzaMedio}
-              />
-            </View>
+              <View style={style.fieldUser}>
+                <Text style={style.labelUser}>Propriedade</Text>
+                <TextInput
+                  style={style.inputUser}
+                  value={propriedade}
+                  onChangeText={setPropriedade}
+                  placeholder="Nome da fazenda/propriedade"
+                  placeholderTextColor={themes.colors.cinzaMedio}
+                />
+              </View>
 
-            <Pressable
-              style={[style.saveButtonUser, (!houveMudanca || isSaving) && style.saveButtonDisabledUser]}
-              disabled={!houveMudanca || isSaving}
-              onPress={handleSalvar}
-            >
-              {isSaving ? (
-                <ActivityIndicator color={themes.colors.branco} size="small" />
-              ) : (
-                <Text style={style.saveButtonTextUser}>Salvar alterações</Text>
-              )}
-            </Pressable>
-          </>
-        )}
+              <Pressable
+                style={[
+                  style.saveButtonUser,
+                  (!houveMudanca || isSaving) && style.saveButtonDisabledUser,
+                ]}
+                disabled={!houveMudanca || isSaving}
+                onPress={handleSalvar}
+              >
+                {isSaving ? (
+                  <ActivityIndicator color={themes.colors.branco} size="small" />
+                ) : (
+                  <Text style={style.saveButtonTextUser}>Salvar alterações</Text>
+                )}
+              </Pressable>
+            </>
+          )}
 
-        <Pressable style={style.signOutButtonUser} onPress={handleSignOut}>
-          <Text style={style.signOutButtonTextUser}>Sair da conta</Text>
-        </Pressable>
+          <Pressable style={style.signOutButtonUser} onPress={handleSignOut}>
+            <Text style={style.signOutButtonTextUser}>Sair da conta</Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

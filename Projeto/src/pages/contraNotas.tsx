@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useRef, useState } from 'react'; // Importa o React e os hooks para gerenciar o estado e os efeitos colaterais do componente
 import {
   View,
@@ -33,7 +32,6 @@ import { style } from '../global/styles';
 const NOTAS_POR_PAGINA = 20;
 
 export default function ContraNotas() {
-
   // Importa o token de autenticação do contexto de autenticação para autorizar as requisições à API
   const { token } = useAuth();
 
@@ -297,21 +295,23 @@ export default function ContraNotas() {
         onEndReached={handleFimDaLista}
         onEndReachedThreshold={0.3}
         ListEmptyComponent={
-        isLoading ? (
-          <View style={style.centeredCN}>
-            <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
-          </View>
-        ) : errorMessage ? (
-          <View style={style.errorBoxCN}>
-            <Text style={style.errorTextCN}>{errorMessage}</Text>
-            <Text style={style.errorHintCN}>Puxe a lista para baixo para tentar de novo.</Text>
-          </View>
-        ) : (
-          <View style={style.emptyBoxCN}>
-            <Text style={style.emptyTextCN}>Nenhuma contra-nota encontrada para esse filtro.</Text>
-          </View>
-        )
-      }
+          isLoading ? (
+            <View style={style.centeredCN}>
+              <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
+            </View>
+          ) : errorMessage ? (
+            <View style={style.errorBoxCN}>
+              <Text style={style.errorTextCN}>{errorMessage}</Text>
+              <Text style={style.errorHintCN}>Puxe a lista para baixo para tentar de novo.</Text>
+            </View>
+          ) : (
+            <View style={style.emptyBoxCN}>
+              <Text style={style.emptyTextCN}>
+                Nenhuma contra-nota encontrada para esse filtro.
+              </Text>
+            </View>
+          )
+        }
         ListFooterComponent={
           isLoadingMais ? (
             <View style={style.footerListaCN}>
@@ -376,5 +376,5 @@ export default function ContraNotas() {
         </Pressable>
       </View>
     </View>
-  )}
-
+  );
+}

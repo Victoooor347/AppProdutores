@@ -1,9 +1,9 @@
-import { createBottomTabNavigator,  } from "@react-navigation/bottom-tabs";
-import Dashboard from "../pages/dashboard";
-import Relatorios from "../pages/relatorios";
-import ContraNotas from "../pages/contraNotas";
-import User from "../pages/users";
-import CustomTabBar from "../components/CustomTabBar";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Dashboard from '../pages/dashboard';
+import Relatorios from '../pages/relatorios';
+import ContraNotas from '../pages/contraNotas';
+import User from '../pages/users';
+import CustomTabBar from '../components/CustomTabBar';
 
 // Fica fora do componente de propósito: criado lá dentro, o navegador seria recriado a cada
 // renderização e o React Navigation remontaria todas as abas (perdendo o estado delas).
@@ -12,27 +12,15 @@ const Tab = createBottomTabNavigator();
 // Componente que define as rotas de navegação inferior (Bottom Tab Navigator) da aplicação,
 // incluindo as telas Dashboard, Relatórios, ContraNotas e User.
 export default function BottomRoutes() {
-    return (
-        <Tab.Navigator
-            screenOptions={{headerShown:false}}
-            tabBar={props=><CustomTabBar {...props}/>}
-            >    
-            <Tab.Screen
-                name="Dashboard" 
-                component={Dashboard} 
-            />
-            <Tab.Screen 
-                name="Relatorios" 
-                component={Relatorios} 
-            />
-            <Tab.Screen 
-                name="ContraNotas" 
-                component={ContraNotas} 
-            />
-            <Tab.Screen 
-                name="User" 
-                component={User} 
-            />
-        </Tab.Navigator> 
-    )
+  return (
+    <Tab.Navigator
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <CustomTabBar {...props} />}
+    >
+      <Tab.Screen name="Dashboard" component={Dashboard} />
+      <Tab.Screen name="Relatorios" component={Relatorios} />
+      <Tab.Screen name="ContraNotas" component={ContraNotas} />
+      <Tab.Screen name="User" component={User} />
+    </Tab.Navigator>
+  );
 }

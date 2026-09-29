@@ -7,12 +7,7 @@ import {
   ResumoCargas,
   ResumoCultura,
 } from '../types/cargas'; // Importa os tipos Carga, CargasFiltros, CargasResponse, GerarPdfJob, ResumoCargas e ResumoCultura que definem a estrutura das cargas, os filtros possíveis para listagem, a resposta paginada da listagem de cargas, o job de geração de PDF e o resumo do ano.
-import {
-  mapPagination,
-  mapPdfJob,
-  RawGerarPdfJob,
-  RawPagination,
-} from '../utils/apiMappers'; // Conversões da API pro formato do app: paginação e job de geração de PDF.
+import { mapPagination, mapPdfJob, RawGerarPdfJob, RawPagination } from '../utils/apiMappers'; // Conversões da API pro formato do app: paginação e job de geração de PDF.
 import { buscarTodasAsPaginas } from './paginacao'; // Busca todas as páginas de uma lista (usado no "Selecionar todas").
 
 // Tipo que representa os dados brutos da carga recebidos da API.
@@ -70,10 +65,7 @@ export async function getResumoCargas(ano: number, token: string): Promise<Resum
 }
 
 // Função que lista as cargas com base nos filtros fornecidos, retornando uma resposta paginada.
-export async function listCargas(
-  filtros: CargasFiltros,
-  token: string
-): Promise<CargasResponse> {
+export async function listCargas(filtros: CargasFiltros, token: string): Promise<CargasResponse> {
   const query = buildQuery({
     page: filtros.page,
     per_page: filtros.perPage,

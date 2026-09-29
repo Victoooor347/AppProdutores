@@ -63,22 +63,42 @@ describe('authService', () => {
     ['recuperar_senha', '/auth/recuperar-senha'],
   ];
 
-  it.each(rotasPorFinalidade)('solicitarCodigo (%s) usa a rota certa e manda só os dígitos do CPF', async (finalidade, rota) => {
-    responder({ email_mascarado: 'jo****@gmail.com', expira_em_segundos: 600, reenviar_em_segundos: 60 });
+  it.each(rotasPorFinalidade)(
+    'solicitarCodigo (%s) usa a rota certa e manda só os dígitos do CPF',
+    async (finalidade, rota) => {
+      responder({
+        email_mascarado: 'jo****@gmail.com',
+        expira_em_segundos: 600,
+        reenviar_em_segundos: 60,
+      });
 
-    const enviado = await solicitarCodigo(finalidade, '529.982.247-25');
+      const enviado = await solicitarCodigo(finalidade, '529.982.247-25');
 
-    const { url, init, body } = ultimaChamada();
-    expect(url).toBe(`${API_URL}${rota}/solicitar-codigo`);
-    expect(body).toEqual({ cpf: '52998224725' });
-    expect(init.headers.Authorization).toBeUndefined();
-    expect(enviado).toEqual({ emailMascarado: 'jo****@gmail.com', expiraEmSegundos: 600, reenviarEmSegundos: 60 });
-  });
+      const { url, init, body } = ultimaChamada();
+      expect(url).toBe(`${API_URL}${rota}/solicitar-codigo`);
+      expect(body).toEqual({ cpf: '52998224725' });
+      expect(init.headers.Authorization).toBeUndefined();
+      expect(enviado).toEqual({
+        emailMascarado: 'jo****@gmail.com',
+        expiraEmSegundos: 600,
+        reenviarEmSegundos: 60,
+      });
+    }
+  );
 
   it('confirmarCodigo manda CPF, código e senha, e devolve a sessão', async () => {
-    responder({ user: { cpf: '52998224725', name: 'Produtor' }, token: 't-novo', expires_in: 86400 });
+    responder({
+      user: { cpf: '52998224725', name: 'Produtor' },
+      token: 't-novo',
+      expires_in: 86400,
+    });
 
-    const sessao = await confirmarCodigo('recuperar_senha', '529.982.247-25', '012345', 'novaSenha');
+    const sessao = await confirmarCodigo(
+      'recuperar_senha',
+      '529.982.247-25',
+      '012345',
+      'novaSenha'
+    );
 
     const { url, body } = ultimaChamada();
     expect(url).toBe(`${API_URL}/auth/recuperar-senha/confirmar`);
@@ -92,7 +112,14 @@ describe('cargasService', () => {
     responder({ data: [], pagination: PAGINACAO });
 
     await listCargas(
-      { page: 2, perPage: 30, ano: 2026, inscricaoEstadual: '123', cultura: undefined, dataInicio: '2026-03-01' },
+      {
+        page: 2,
+        perPage: 30,
+        ano: 2026,
+        inscricaoEstadual: '123',
+        cultura: undefined,
+        dataInicio: '2026-03-01',
+      },
       'abc'
     );
 
@@ -171,7 +198,14 @@ describe('cargasService', () => {
 describe('contranotasService', () => {
   it('lista com paginação e converte os campos', async () => {
     responder({
-      data: [{ id: 'n1', numero: '000125', data_emissao: '2026-07-22', arquivo_pdf_url: 'https://x/n1.pdf' }],
+      data: [
+        {
+          id: 'n1',
+          numero: '000125',
+          data_emissao: '2026-07-22',
+          arquivo_pdf_url: 'https://x/n1.pdf',
+        },
+      ],
       pagination: PAGINACAO,
     });
 
@@ -217,17 +251,28 @@ describe('contranotasService', () => {
   });
 
   it('listarIdsContraNotas percorre todas as páginas com o mesmo filtro', async () => {
-    const nota = (id: string) => ({ id, numero: id, data_emissao: '2026-07-01', arquivo_pdf_url: 'x' });
+    const nota = (id: string) => ({
+      id,
+      numero: id,
+      data_emissao: '2026-07-01',
+      arquivo_pdf_url: 'x',
+    });
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ data: [nota('n1'), nota('n2')], pagination: { page: 1, per_page: 100, total_items: 3, total_pages: 2 } }),
+        json: async () => ({
+          data: [nota('n1'), nota('n2')],
+          pagination: { page: 1, per_page: 100, total_items: 3, total_pages: 2 },
+        }),
       })
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ data: [nota('n3')], pagination: { page: 2, per_page: 100, total_items: 3, total_pages: 2 } }),
+        json: async () => ({
+          data: [nota('n3')],
+          pagination: { page: 2, per_page: 100, total_items: 3, total_pages: 2 },
+        }),
       });
 
     const ids = await listarIdsContraNotas({ ano: 2026, perPage: 20 }, 'abc');
@@ -244,24 +289,38 @@ describe('contranotasService', () => {
 describe('Selecionar todas (cargas)', () => {
   it('listarIdsCargas busca todas as páginas do filtro e devolve só os IDs', async () => {
     const carga = (id: string) => ({
-      id, cultura: 'arroz', data: '2026-07-01', inscricao_estadual: '1', quantidade: 1, unidade: 'sc', placa: 'A',
+      id,
+      cultura: 'arroz',
+      data: '2026-07-01',
+      inscricao_estadual: '1',
+      quantidade: 1,
+      unidade: 'sc',
+      placa: 'A',
     });
     fetchMock
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ data: [carga('c1')], pagination: { page: 1, per_page: 100, total_items: 2, total_pages: 2 } }),
+        json: async () => ({
+          data: [carga('c1')],
+          pagination: { page: 1, per_page: 100, total_items: 2, total_pages: 2 },
+        }),
       })
       .mockResolvedValueOnce({
         ok: true,
         status: 200,
-        json: async () => ({ data: [carga('c2')], pagination: { page: 2, per_page: 100, total_items: 2, total_pages: 2 } }),
+        json: async () => ({
+          data: [carga('c2')],
+          pagination: { page: 2, per_page: 100, total_items: 2, total_pages: 2 },
+        }),
       });
 
     const ids = await listarIdsCargas({ ano: 2026, cultura: 'arroz', perPage: 30 }, 'abc');
 
     expect(ids).toEqual(['c1', 'c2']);
-    expect(fetchMock.mock.calls[1][0]).toBe(`${API_URL}/cargas?page=2&per_page=100&ano=2026&cultura=arroz`);
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      `${API_URL}/cargas?page=2&per_page=100&ano=2026&cultura=arroz`
+    );
   });
 });
 
@@ -281,13 +340,23 @@ describe('precosService', () => {
 
     const precos = await getPrecosDoDia('abc');
 
-    expect(precos[0]).toMatchObject({ nomeExibicao: 'Arroz', preco: 63.2, atualizadoEm: '2026-09-29T08:00:00-03:00' });
+    expect(precos[0]).toMatchObject({
+      nomeExibicao: 'Arroz',
+      preco: 63.2,
+      atualizadoEm: '2026-09-29T08:00:00-03:00',
+    });
   });
 });
 
 describe('userService', () => {
   it('troca e-mail, telefone e propriedade nulos por texto vazio', async () => {
-    responder({ cpf: '52998224725', name: 'Produtor', email: null, telefone: null, propriedade: null });
+    responder({
+      cpf: '52998224725',
+      name: 'Produtor',
+      email: null,
+      telefone: null,
+      propriedade: null,
+    });
 
     const perfil = await getProfile('abc');
 
@@ -301,7 +370,13 @@ describe('userService', () => {
   });
 
   it('traz o e-mail do cadastro', async () => {
-    responder({ cpf: '52998224725', name: 'Produtor', email: 'p@x.com', telefone: '1', propriedade: 'F' });
+    responder({
+      cpf: '52998224725',
+      name: 'Produtor',
+      email: 'p@x.com',
+      telefone: '1',
+      propriedade: 'F',
+    });
 
     const perfil = await getProfile('abc');
 

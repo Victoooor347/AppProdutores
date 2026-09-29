@@ -18,12 +18,7 @@ describe('buildMarkedDates', () => {
     const marcados = buildMarkedDates('2026-02-27', '2026-03-02', VERDE);
 
     // Passa pela virada de fevereiro pra março (2026 não é bissexto)
-    expect(Object.keys(marcados)).toEqual([
-      '2026-02-27',
-      '2026-02-28',
-      '2026-03-01',
-      '2026-03-02',
-    ]);
+    expect(Object.keys(marcados)).toEqual(['2026-02-27', '2026-02-28', '2026-03-01', '2026-03-02']);
     expect(marcados['2026-02-27'].startingDay).toBe(true);
     expect(marcados['2026-02-28']).toMatchObject({ startingDay: false, endingDay: false });
     expect(marcados['2026-03-02'].endingDay).toBe(true);

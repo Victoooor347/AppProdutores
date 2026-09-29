@@ -2,7 +2,7 @@ import React, {
   useEffect, //gerenciar efeitos colaterais
   useMemo, //memorização de valores calculados
   useRef, //guardar valores entre renderizações sem causar nova renderização
-  useState //gerenciar estados locais
+  useState, //gerenciar estados locais
 } from 'react';
 import {
   View, //container principal
@@ -234,8 +234,7 @@ export default function Relatorios() {
   }
 
   // Todas as cargas do filtro já estão marcadas? (a seleção é limpa ao trocar de filtro)
-  const todasSelecionadas =
-    paginacao.totalCargas > 0 && selectedIds.size >= paginacao.totalCargas;
+  const todasSelecionadas = paginacao.totalCargas > 0 && selectedIds.size >= paginacao.totalCargas;
 
   // "Selecionar todas" marca TODAS as cargas do filtro, inclusive as que ainda não
   // apareceram na rolagem. Se já estão todas marcadas, o botão desmarca.
@@ -320,158 +319,152 @@ export default function Relatorios() {
   }
 
   return (
-  <View style={style.screenRel}>
-    <AppHeader title="Dickow Produtores" />
+    <View style={style.screenRel}>
+      <AppHeader title="Dickow Produtores" />
 
-    {/* Conteúdo fixo, fora da rolagem. Fica sempre visível — só a lista mostra carregamento. */}
-    <View style={style.titleRowRel}>
-      <Text style={style.titleRel}>Relatório de Safra</Text>
-      <SelectField
-        label="Ano"
-        value={ano}
-        options={ANO_OPTIONS}
-        onChange={handleAnoChange}
-      />
-    </View>
-
-    <View style={style.resumoRowRel}>
-      <View style={style.resumoCardRel}>
-        <Text style={style.resumoLabelRel}>Total entregue - Arroz</Text>
-        {renderTotal('arroz')}
+      {/* Conteúdo fixo, fora da rolagem. Fica sempre visível — só a lista mostra carregamento. */}
+      <View style={style.titleRowRel}>
+        <Text style={style.titleRel}>Relatório de Safra</Text>
+        <SelectField label="Ano" value={ano} options={ANO_OPTIONS} onChange={handleAnoChange} />
       </View>
-      <View style={style.resumoCardRel}>
-        <Text style={style.resumoLabelRel}>Total entregue - Soja</Text>
-        {renderTotal('soja')}
+
+      <View style={style.resumoRowRel}>
+        <View style={style.resumoCardRel}>
+          <Text style={style.resumoLabelRel}>Total entregue - Arroz</Text>
+          {renderTotal('arroz')}
+        </View>
+        <View style={style.resumoCardRel}>
+          <Text style={style.resumoLabelRel}>Total entregue - Soja</Text>
+          {renderTotal('soja')}
+        </View>
       </View>
-    </View>
 
-    <View style={style.filterBarRel}>
-      <SelectField
-        label="IE"
-        value={inscricaoEstadual}
-        options={ieOptions}
-        onChange={handleInscricaoChange}
-      />
-      <SelectField
-        label="Cultura"
-        value={cultura}
-        options={CULTURA_OPTIONS}
-        onChange={handleCulturaChange}
-      />
-      <DateRangeField value={periodo} onChange={handlePeriodoChange} />
-    </View>
-
-    {!isLoadingLista && !erroLista && (
-      <View style={style.contadorRowRel}>
-        <Text style={style.contadorRel}>
-          {paginacao.totalCargas === 1
-            ? '1 carga encontrada'
-            : `${paginacao.totalCargas} cargas encontradas`}
-        </Text>
-        {paginacao.totalCargas > 0 && (
-          <Pressable
-            style={style.selecionarTodasRel}
-            onPress={handleSelecionarTodas}
-            disabled={isSelecionandoTodas}
-          >
-            {isSelecionandoTodas ? (
-              <ActivityIndicator size="small" color={themes.colors.verdeMedio} />
-            ) : (
-              <Text style={style.selecionarTodasTextRel}>
-                {todasSelecionadas ? 'Desmarcar todas' : 'Selecionar todas'}
-              </Text>
-            )}
-          </Pressable>
-        )}
-      </View>
-    )}
-
-    {/* Só a lista de cargas rola, com pull-to-refresh e rolagem infinita */}
-    <FlatList
-      style={style.listaCargasRel}
-      contentContainerStyle={style.contentRel}
-      data={isLoadingLista || erroLista ? [] : cargas}
-      keyExtractor={(carga) => String(carga.id)}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefreshing}
-          onRefresh={handleRefresh}
-          colors={[themes.colors.verdeMedio]}
+      <View style={style.filterBarRel}>
+        <SelectField
+          label="IE"
+          value={inscricaoEstadual}
+          options={ieOptions}
+          onChange={handleInscricaoChange}
         />
-      }
-      onEndReached={handleFimDaLista}
-      onEndReachedThreshold={0.3}
-      ListEmptyComponent={
-        isLoadingLista ? (
-          <View style={style.centeredRel}>
-            <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
-          </View>
-        ) : erroLista ? (
-          <View style={style.errorBoxRel}>
-            <Text style={style.errorTextRel}>{erroLista}</Text>
-            <Text style={style.errorHintRel}>Puxe a lista para baixo para tentar de novo.</Text>
-          </View>
-        ) : (
-          <View style={style.emptyBoxRel}>
-            <Text style={style.emptyTextRel}>Nenhuma carga encontrada para esse filtro.</Text>
-          </View>
-        )
-      }
-      ListFooterComponent={
-        isLoadingMais ? (
-          <View style={style.footerListaRel}>
-            <ActivityIndicator color={themes.colors.verdeMedio} />
-          </View>
-        ) : erroMais ? (
-          <Pressable style={style.footerListaRel} onPress={carregarProximaPagina}>
-            <Text style={style.retryTextRel}>
-              Não foi possível carregar mais cargas. Toque para tentar de novo.
-            </Text>
-          </Pressable>
-        ) : null
-      }
-      renderItem={({ item: carga }) => {
-        const isSelected = selectedIds.has(carga.id);
-        return (
-          <Pressable
-            style={style.cargaRowRel}
-            onPress={() => toggleSelecao(carga.id)}
-          >
-            <View style={[style.checkboxRel, isSelected && style.checkboxSelectedRel]}>
-              {isSelected && <Ionicons name="checkmark" size={14} color={themes.colors.branco} />}
-            </View>
-            <Text style={[style.cargaCellRel, style.cargaCellDataRel]}>{formatDate(carga.data)}</Text>
-            <Text style={[style.cargaCellRel, style.cargaCellCulturaRel]}>
-              {carga.cultura === 'arroz' ? 'Arroz' : 'Soja'}
-            </Text>
-            <Text style={[style.cargaCellRel, style.cargaCellSacasRel]}>
-              {carga.quantidade} {carga.unidade}
-            </Text>
-            <Text style={[style.cargaCellRel, style.cargaCellPlacaRel]}>{carga.placa}</Text>
-          </Pressable>
-        );
-      }}
-    />
+        <SelectField
+          label="Cultura"
+          value={cultura}
+          options={CULTURA_OPTIONS}
+          onChange={handleCulturaChange}
+        />
+        <DateRangeField value={periodo} onChange={handlePeriodoChange} />
+      </View>
 
-    <View style={style.footerRel}>
-      <Pressable
-        style={[
-          style.pdfButtonRel,
-          (selectedIds.size === 0 || isGeneratingPdf) && style.pdfButtonDisabledRel,
-        ]}
-        disabled={selectedIds.size === 0 || isGeneratingPdf}
-        onPress={handleGerarPdf}
-      >
-        {isGeneratingPdf ? (
-          <ActivityIndicator color={themes.colors.preto} size="small" />
-        ) : (
-          <Text style={style.pdfButtonTextRel}>
-            Gerar PDF das cargas selecionadas
-            {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+      {!isLoadingLista && !erroLista && (
+        <View style={style.contadorRowRel}>
+          <Text style={style.contadorRel}>
+            {paginacao.totalCargas === 1
+              ? '1 carga encontrada'
+              : `${paginacao.totalCargas} cargas encontradas`}
           </Text>
-        )}
-      </Pressable>
-    </View>
-  </View>
-)}
+          {paginacao.totalCargas > 0 && (
+            <Pressable
+              style={style.selecionarTodasRel}
+              onPress={handleSelecionarTodas}
+              disabled={isSelecionandoTodas}
+            >
+              {isSelecionandoTodas ? (
+                <ActivityIndicator size="small" color={themes.colors.verdeMedio} />
+              ) : (
+                <Text style={style.selecionarTodasTextRel}>
+                  {todasSelecionadas ? 'Desmarcar todas' : 'Selecionar todas'}
+                </Text>
+              )}
+            </Pressable>
+          )}
+        </View>
+      )}
 
+      {/* Só a lista de cargas rola, com pull-to-refresh e rolagem infinita */}
+      <FlatList
+        style={style.listaCargasRel}
+        contentContainerStyle={style.contentRel}
+        data={isLoadingLista || erroLista ? [] : cargas}
+        keyExtractor={(carga) => String(carga.id)}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={[themes.colors.verdeMedio]}
+          />
+        }
+        onEndReached={handleFimDaLista}
+        onEndReachedThreshold={0.3}
+        ListEmptyComponent={
+          isLoadingLista ? (
+            <View style={style.centeredRel}>
+              <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
+            </View>
+          ) : erroLista ? (
+            <View style={style.errorBoxRel}>
+              <Text style={style.errorTextRel}>{erroLista}</Text>
+              <Text style={style.errorHintRel}>Puxe a lista para baixo para tentar de novo.</Text>
+            </View>
+          ) : (
+            <View style={style.emptyBoxRel}>
+              <Text style={style.emptyTextRel}>Nenhuma carga encontrada para esse filtro.</Text>
+            </View>
+          )
+        }
+        ListFooterComponent={
+          isLoadingMais ? (
+            <View style={style.footerListaRel}>
+              <ActivityIndicator color={themes.colors.verdeMedio} />
+            </View>
+          ) : erroMais ? (
+            <Pressable style={style.footerListaRel} onPress={carregarProximaPagina}>
+              <Text style={style.retryTextRel}>
+                Não foi possível carregar mais cargas. Toque para tentar de novo.
+              </Text>
+            </Pressable>
+          ) : null
+        }
+        renderItem={({ item: carga }) => {
+          const isSelected = selectedIds.has(carga.id);
+          return (
+            <Pressable style={style.cargaRowRel} onPress={() => toggleSelecao(carga.id)}>
+              <View style={[style.checkboxRel, isSelected && style.checkboxSelectedRel]}>
+                {isSelected && <Ionicons name="checkmark" size={14} color={themes.colors.branco} />}
+              </View>
+              <Text style={[style.cargaCellRel, style.cargaCellDataRel]}>
+                {formatDate(carga.data)}
+              </Text>
+              <Text style={[style.cargaCellRel, style.cargaCellCulturaRel]}>
+                {carga.cultura === 'arroz' ? 'Arroz' : 'Soja'}
+              </Text>
+              <Text style={[style.cargaCellRel, style.cargaCellSacasRel]}>
+                {carga.quantidade} {carga.unidade}
+              </Text>
+              <Text style={[style.cargaCellRel, style.cargaCellPlacaRel]}>{carga.placa}</Text>
+            </Pressable>
+          );
+        }}
+      />
+
+      <View style={style.footerRel}>
+        <Pressable
+          style={[
+            style.pdfButtonRel,
+            (selectedIds.size === 0 || isGeneratingPdf) && style.pdfButtonDisabledRel,
+          ]}
+          disabled={selectedIds.size === 0 || isGeneratingPdf}
+          onPress={handleGerarPdf}
+        >
+          {isGeneratingPdf ? (
+            <ActivityIndicator color={themes.colors.preto} size="small" />
+          ) : (
+            <Text style={style.pdfButtonTextRel}>
+              Gerar PDF das cargas selecionadas
+              {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+            </Text>
+          )}
+        </Pressable>
+      </View>
+    </View>
+  );
+}
