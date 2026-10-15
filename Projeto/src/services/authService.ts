@@ -1,9 +1,15 @@
-import { api } from './api'; // Importa a instância da API, usada para fazer requisições HTTP.
-import { CodigoEnviado, FinalidadeCodigo, User } from '../types/auth'; // Tipos do usuário autenticado e dos códigos enviados por e-mail.
+import { api } from './api';
+import { CodigoEnviado, FinalidadeCodigo, User } from '../types/auth';
 
 export type LoginResponse = {
   user: User;
   token: string;
+  expires_in: number; // validade do token, em segundos
+};
+
+export type RefreshResponse = {
+  token: string;
+  expires_in: number;
 };
 
 // A tela manda o CPF com máscara (000.000.000-00); a API recebe só os 11 dígitos.
@@ -20,6 +26,11 @@ export async function loginRequest(cpf: string, password: string): Promise<Login
 // também no servidor (não só apagado do celular).
 export async function logoutRequest(token: string): Promise<void> {
   await api.post('/auth/logout', {}, token);
+}
+
+// Troca o token atual (ainda válido) por um novo, sem pedir a senha. O antigo deixa de valer.
+export async function refreshRequest(token: string): Promise<RefreshResponse> {
+  return api.post<RefreshResponse>('/auth/refresh', {}, token);
 }
 
 // Rota da API de cada fluxo que usa código por e-mail

@@ -1,5 +1,5 @@
-import { api } from './api'; // Importa a instância da API, usada para fazer requisições HTTP.
-import { UserProfile, UserProfileUpdate } from '../types/userprofile'; // Importa os tipos UserProfile e UserProfileUpdate que definem a estrutura do perfil do usuário e as atualizações possíveis no perfil.
+import { api } from './api';
+import { UserProfile, UserProfileUpdate } from '../types/userprofile';
 
 // Tipo que representa os dados brutos do perfil recebidos da API
 // (e-mail, telefone e propriedade podem vir null quando não foram preenchidos).

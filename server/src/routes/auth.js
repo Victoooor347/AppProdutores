@@ -2,12 +2,18 @@ const express = require('express');
 const crypto = require('crypto');
 const { pool } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
+const { erroHttp } = require('../utils/erroHttp');
 const { requireAuth, hashToken } = require('../middleware/auth');
 const { enviarEmail } = require('../services/emailService');
 const {
+  ipDaRequisicao,
+  conferirLimite,
+  registrarTentativa,
+  limparTentativas,
+} = require('../services/tentativasService');
+const {
   VALIDADE_CODIGO_SEGUNDOS,
   INTERVALO_REENVIO_SEGUNDOS,
-  erroHttp,
   mascararEmail,
   criarCodigo,
   descartarCodigo,
@@ -42,11 +48,16 @@ async function createSession(userCpf) {
 router.post('/login', asyncHandler(async (req, res) => {
   const { cpf, password } = req.body;
 
-  if (!cpf || !password) {
+  if (!cpf || !password || typeof password !== 'string') {
     return res.status(400).json({ message: 'CPF e senha são obrigatórios.' });
   }
 
   const digits = String(cpf).replace(/\D/g, '');
+  const tentativa = { cpf: digits, ip: ipDaRequisicao(req) };
+
+  // Confere o limite ANTES da senha: bloqueado, nem a senha certa entra (senão o bloqueio
+  // não impediria a força bruta, só a deixaria mais lenta)
+  await conferirLimite('login', tentativa);
 
   const result = await pool.query(
     `SELECT cpf, name,
@@ -70,9 +81,11 @@ router.post('/login', asyncHandler(async (req, res) => {
   // inexistente quanto para senha errada — evita enumeração de usuários
   // (ver observação no contrato da API).
   if (!user || !user.senha_confere) {
+    await registrarTentativa('login', tentativa);
     return res.status(401).json({ message: 'CPF ou senha incorretos.' });
   }
 
+  await limparTentativas('login', tentativa);
   const { token, expiresIn } = await createSession(user.cpf);
 
   return res.json({
@@ -185,8 +198,20 @@ async function definirSenhaEEntrar(produtor, password, res) {
   });
 }
 
+// Limite de pedidos de código por IP. Conta todo pedido, inclusive de CPF não cadastrado:
+// a resposta diz se o CPF existe, então é isso que impede testar vários CPFs em sequência.
+async function limitarPedidoDeCodigo(req) {
+  const tentativa = {
+    cpf: String(req.body.cpf || '').replace(/\D/g, ''),
+    ip: ipDaRequisicao(req),
+  };
+  await conferirLimite('pedido_codigo', tentativa);
+  await registrarTentativa('pedido_codigo', tentativa);
+}
+
 // POST /auth/primeiro-acesso/solicitar-codigo — produtor cadastrado pela empresa, ainda sem senha
 router.post('/primeiro-acesso/solicitar-codigo', asyncHandler(async (req, res) => {
+  await limitarPedidoDeCodigo(req);
   const produtor = await buscarProdutor(req.body.cpf);
   if (produtor.tem_senha) {
     throw erroHttp(409, JA_TEM_SENHA);
@@ -211,6 +236,7 @@ router.post('/primeiro-acesso/confirmar', asyncHandler(async (req, res) => {
 
 // POST /auth/recuperar-senha/solicitar-codigo
 router.post('/recuperar-senha/solicitar-codigo', asyncHandler(async (req, res) => {
+  await limitarPedidoDeCodigo(req);
   const produtor = await buscarProdutor(req.body.cpf);
   return enviarCodigo(produtor, 'recuperar_senha', res);
 }));

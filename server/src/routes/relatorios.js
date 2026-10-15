@@ -3,17 +3,23 @@ const { pool } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { requireAuth } = require('../middleware/auth');
 const { gerarPdfRelatorioCargas } = require('../services/pdfService');
+const { ehUuid, lerListaDeIds } = require('../utils/validacao');
 
 const router = express.Router();
+
+// Máximo de cargas num PDF só. Também mantém o corpo da requisição (2.000 IDs ≈ 80 KB)
+// abaixo do limite de 100 KB do express.json().
+const MAX_CARGAS_POR_PDF = 2000;
 
 // POST /relatorios/gerar-pdf
 // Recebe os IDs das cargas selecionadas e inicia a geração assíncrona.
 router.post('/gerar-pdf', requireAuth, asyncHandler(async (req, res) => {
-  const { carga_ids: cargaIds } = req.body;
-
-  if (!Array.isArray(cargaIds) || cargaIds.length === 0) {
-    return res.status(400).json({ message: 'Selecione ao menos uma carga.' });
-  }
+  const cargaIds = lerListaDeIds(req.body.carga_ids, {
+    maximo: MAX_CARGAS_POR_PDF,
+    mensagemVazia: 'Selecione ao menos uma carga.',
+    mensagemInvalida: 'Carga inválida na seleção.',
+    mensagemMaximo: `Selecione no máximo ${MAX_CARGAS_POR_PDF} cargas por PDF.`,
+  });
 
   // Busca as cargas já confirmando que pertencem ao usuário logado —
   // nunca confiar em IDs vindos do cliente sem checar o dono. Também serve
@@ -80,6 +86,10 @@ router.post('/gerar-pdf', requireAuth, asyncHandler(async (req, res) => {
 
 // GET /relatorios/gerar-pdf/:jobId
 router.get('/gerar-pdf/:jobId', requireAuth, asyncHandler(async (req, res) => {
+  if (!ehUuid(req.params.jobId)) {
+    return res.status(404).json({ message: 'Job não encontrado.' });
+  }
+
   const result = await pool.query(
     `SELECT id, status, arquivo_pdf_url FROM relatorio_pdf_jobs WHERE id = $1 AND user_cpf = $2`,
     [req.params.jobId, req.userCpf]

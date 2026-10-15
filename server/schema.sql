@@ -55,6 +55,20 @@ CREATE TABLE verification_codes (
 CREATE INDEX idx_verification_codes_user ON verification_codes(user_cpf, purpose, created_at);
 
 -- ---------------------------------------------------------
+-- 2c. Tentativas (limite contra força bruta: erros de login e pedidos de código por IP)
+-- ---------------------------------------------------------
+CREATE TABLE tentativas (
+  id          BIGSERIAL PRIMARY KEY,
+  tipo        TEXT NOT NULL,                     -- 'login' | 'pedido_codigo'
+  cpf         TEXT NOT NULL,                     -- como foi digitado (só dígitos); pode não existir em users
+  ip          TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_tentativas_cpf ON tentativas(tipo, cpf, created_at);
+CREATE INDEX idx_tentativas_ip ON tentativas(tipo, ip, created_at);
+
+-- ---------------------------------------------------------
 -- 3. Preço do dia (Dashboard) — não tem interface de admin,
 --    é atualizado direto no banco (decisão já registrada no contrato)
 -- ---------------------------------------------------------

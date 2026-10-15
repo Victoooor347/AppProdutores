@@ -1,8 +1,8 @@
-import { api, buildQuery } from './api'; // Importa a instância da API (requisições HTTP) e a função que monta a query string das URLs.
-import { ContraNota, ContraNotasFiltros, ContraNotasResponse } from '../types/contranotas'; // Importa os tipos ContraNota, ContraNotasFiltros e ContraNotasResponse que definem a estrutura das contra notas, os filtros possíveis para listagem e a resposta paginada da listagem de contra notas.
-import { GerarPdfJob } from '../types/pdf'; // Job de geração do PDF com as notas juntas.
-import { mapPagination, mapPdfJob, RawGerarPdfJob, RawPagination } from '../utils/apiMappers'; // Conversões da API pro formato do app: paginação e job de geração de PDF.
-import { buscarTodasAsPaginas } from './paginacao'; // Busca todas as páginas de uma lista (usado no "Selecionar todas").
+import { api, buildQuery } from './api';
+import { ContraNota, ContraNotasFiltros, ContraNotasResponse } from '../types/contranotas';
+import { GerarPdfJob } from '../types/pdf';
+import { mapPagination, mapPdfJob, RawGerarPdfJob, RawPagination } from '../utils/apiMappers';
+import { buscarTodasAsPaginas } from './paginacao';
 
 // Tipo que representa os dados brutos da contra nota recebidos da API.
 type RawContraNota = {
@@ -54,6 +54,9 @@ export async function listarIdsContraNotas(
   );
   return Array.from(new Set(notas.map((nota) => nota.id)));
 }
+
+// Máximo de contra-notas num PDF só (limite da API — ver contrato-api.md)
+export const MAX_CONTRA_NOTAS_POR_PDF = 200;
 
 // Inicia a geração do PDF único com as contra-notas selecionadas juntas.
 export async function gerarPdfContraNotas(

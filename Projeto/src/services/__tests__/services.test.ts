@@ -1,7 +1,13 @@
 // Testa se os services conversam com a API no formato do contrato (contrato-api.md):
 // o que mandam (rota, parâmetros, corpo) e como convertem a resposta para o app.
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import { confirmarCodigo, loginRequest, logoutRequest, solicitarCodigo } from '../authService';
+import {
+  confirmarCodigo,
+  loginRequest,
+  logoutRequest,
+  refreshRequest,
+  solicitarCodigo,
+} from '../authService';
 import { getResumoCargas, listCargas, listarIdsCargas, gerarPdfCargas } from '../cargasService';
 import {
   consultarJobPdfContraNotas,
@@ -56,6 +62,18 @@ describe('authService', () => {
     expect(url).toBe(`${API_URL}/auth/logout`);
     expect(init.method).toBe('POST');
     expect(init.headers.Authorization).toBe('Bearer abc');
+  });
+
+  it('refresh chama POST /auth/refresh com o token atual e devolve o novo', async () => {
+    responder({ token: 'novo', expires_in: 86400 });
+
+    const resposta = await refreshRequest('antigo');
+
+    const { url, init } = ultimaChamada();
+    expect(url).toBe(`${API_URL}/auth/refresh`);
+    expect(init.method).toBe('POST');
+    expect(init.headers.Authorization).toBe('Bearer antigo');
+    expect(resposta).toEqual({ token: 'novo', expires_in: 86400 });
   });
 
   const rotasPorFinalidade: [FinalidadeCodigo, string][] = [

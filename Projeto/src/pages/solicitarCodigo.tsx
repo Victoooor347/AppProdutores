@@ -4,9 +4,9 @@ import {
   Text,
   TextInput,
   Pressable,
-  ActivityIndicator, // Indicador de carregamento enquanto o código é enviado
+  ActivityIndicator,
   Alert,
-  KeyboardAvoidingView, // Ajusta a tela quando o teclado abre
+  KeyboardAvoidingView,
   ScrollView,
   Platform,
 } from 'react-native';

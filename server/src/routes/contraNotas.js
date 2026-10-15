@@ -3,6 +3,7 @@ const { pool } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { requireAuth } = require('../middleware/auth');
 const { gerarPdfContraNotaExemplo, juntarPdfs } = require('../services/pdfService');
+const { ehUuid, lerPaginacao, lerAno, lerData, lerListaDeIds } = require('../utils/validacao');
 
 const router = express.Router();
 
@@ -13,8 +14,6 @@ const MAX_NOTAS_POR_PDF = 200;
 // Ver linkCompleto() e o GET /arquivos/contra-notas/exemplo/... no index.js.
 const PREFIXO_PDF_EXEMPLO = '/arquivos/contra-notas/exemplo/';
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 // Transforma "/arquivos/..." em link completo, usando o endereço pelo qual o app acessou
 // a API (IP da rede local ou domínio). Links que já são completos ficam como estão.
 function linkCompleto(req, url) {
@@ -24,12 +23,14 @@ function linkCompleto(req, url) {
 // Filtros da listagem. A data de emissão é comparada pelo dia em UTC — o mesmo dia que o
 // app mostra na tela (ele exibe a parte da data do texto que a API devolve).
 function montarFiltros(req) {
-  const { ano, data_inicio: dataInicio, data_fim: dataFim } = req.query;
+  const ano = lerAno(req.query.ano);
+  const dataInicio = lerData(req.query.data_inicio, 'Data inicial');
+  const dataFim = lerData(req.query.data_fim, 'Data final');
   const conditions = ['user_cpf = $1'];
   const params = [req.userCpf];
 
   if (ano) {
-    params.push(Number(ano));
+    params.push(ano);
     conditions.push(`EXTRACT(YEAR FROM data_emissao AT TIME ZONE 'UTC') = $${params.length}`);
   }
   if (dataInicio) {
@@ -46,8 +47,7 @@ function montarFiltros(req) {
 
 // GET /contra-notas?page=1&per_page=20&ano=&data_inicio=&data_fim=
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
-  const page = Number(req.query.page) || 1;
-  const perPage = Number(req.query.per_page) || 20;
+  const { page, perPage } = lerPaginacao(req.query);
   const { whereClause, params } = montarFiltros(req);
 
   const countResult = await pool.query(
@@ -99,19 +99,12 @@ async function baixarPdfDaNota(nota) {
 // responde na hora com o job e termina em segundo plano (o app consulta até ficar "pronto").
 // Os jobs ficam na mesma tabela dos relatórios (relatorio_pdf_jobs).
 router.post('/gerar-pdf', requireAuth, asyncHandler(async (req, res) => {
-  const { contra_nota_ids: ids } = req.body;
-
-  if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).json({ message: 'Selecione ao menos uma contra-nota.' });
-  }
-  if (ids.length > MAX_NOTAS_POR_PDF) {
-    return res
-      .status(400)
-      .json({ message: `Selecione no máximo ${MAX_NOTAS_POR_PDF} contra-notas por PDF.` });
-  }
-  if (!ids.every((id) => UUID_REGEX.test(String(id)))) {
-    return res.status(400).json({ message: 'Contra-nota inválida na seleção.' });
-  }
+  const ids = lerListaDeIds(req.body.contra_nota_ids, {
+    maximo: MAX_NOTAS_POR_PDF,
+    mensagemVazia: 'Selecione ao menos uma contra-nota.',
+    mensagemInvalida: 'Contra-nota inválida na seleção.',
+    mensagemMaximo: `Selecione no máximo ${MAX_NOTAS_POR_PDF} contra-notas por PDF.`,
+  });
 
   // Busca as notas já conferindo que são do usuário logado, em ordem de emissão
   const notasResult = await pool.query(
@@ -122,7 +115,7 @@ router.post('/gerar-pdf', requireAuth, asyncHandler(async (req, res) => {
     [ids, req.userCpf]
   );
 
-  if (notasResult.rows.length !== new Set(ids).size) {
+  if (notasResult.rows.length !== ids.length) {
     return res
       .status(403)
       .json({ message: 'Uma ou mais contra-notas não pertencem a este usuário.' });
@@ -159,7 +152,7 @@ router.post('/gerar-pdf', requireAuth, asyncHandler(async (req, res) => {
 
 // GET /contra-notas/gerar-pdf/:jobId
 router.get('/gerar-pdf/:jobId', requireAuth, asyncHandler(async (req, res) => {
-  if (!UUID_REGEX.test(req.params.jobId)) {
+  if (!ehUuid(req.params.jobId)) {
     return res.status(404).json({ message: 'Job não encontrado.' });
   }
 

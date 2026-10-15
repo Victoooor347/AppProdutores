@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { pool } = require('../db');
+const { erroHttp } = require('../utils/erroHttp');
 
 // Regras dos códigos enviados por e-mail (primeiro acesso e recuperação de senha)
 const VALIDADE_CODIGO_SEGUNDOS = 10 * 60; // 10 minutos
@@ -8,13 +9,6 @@ const MAX_CODIGOS_POR_HORA = 5; // por CPF e finalidade — evita usar o app pra
 const MAX_TENTATIVAS = 5; // códigos errados antes de invalidar
 
 const FINALIDADES = ['primeiro_acesso', 'recuperar_senha'];
-
-// Erro com status HTTP: o tratamento de erro do index.js devolve { message } com esse status.
-function erroHttp(status, message) {
-  const error = new Error(message);
-  error.status = status;
-  return error;
-}
 
 // 6 dígitos com gerador criptográfico (Math.random é previsível — não serve pra segurança).
 function gerarCodigo() {
@@ -161,7 +155,6 @@ module.exports = {
   FINALIDADES,
   VALIDADE_CODIGO_SEGUNDOS,
   INTERVALO_REENVIO_SEGUNDOS,
-  erroHttp,
   mascararEmail,
   criarCodigo,
   descartarCodigo,

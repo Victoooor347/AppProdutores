@@ -2,12 +2,13 @@ const express = require('express');
 const { pool } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { requireAuth } = require('../middleware/auth');
+const { lerPaginacao, lerAno, lerData, lerTexto } = require('../utils/validacao');
 
 const router = express.Router();
 
 // GET /cargas/resumo?ano=2026 — totais por cultura + IEs com entregas no ano
 router.get('/resumo', requireAuth, asyncHandler(async (req, res) => {
-  const ano = req.query.ano ? Number(req.query.ano) : new Date().getFullYear();
+  const ano = lerAno(req.query.ano) ?? new Date().getFullYear();
 
   const result = await pool.query(
     `SELECT cultura, COALESCE(SUM(quantidade), 0) AS total_sacas, MIN(unidade) AS unidade
@@ -41,15 +42,18 @@ router.get('/resumo', requireAuth, asyncHandler(async (req, res) => {
 
 // GET /cargas?page=1&per_page=20&ano=&inscricao_estadual=&cultura=&data=
 router.get('/', requireAuth, asyncHandler(async (req, res) => {
-  const page = Number(req.query.page) || 1;
-  const perPage = Number(req.query.per_page) || 20;
-  const { ano, inscricao_estadual: inscricaoEstadual, cultura, data_inicio: dataInicio, data_fim: dataFim } = req.query;
+  const { page, perPage } = lerPaginacao(req.query);
+  const ano = lerAno(req.query.ano);
+  const inscricaoEstadual = lerTexto(req.query.inscricao_estadual, 'de IE');
+  const cultura = lerTexto(req.query.cultura, 'de cultura');
+  const dataInicio = lerData(req.query.data_inicio, 'Data inicial');
+  const dataFim = lerData(req.query.data_fim, 'Data final');
 
   const conditions = ['user_cpf = $1'];
   const params = [req.userCpf];
 
   if (ano) {
-    params.push(Number(ano));
+    params.push(ano);
     conditions.push(`EXTRACT(YEAR FROM data) = $${params.length}`);
   }
   if (inscricaoEstadual) {

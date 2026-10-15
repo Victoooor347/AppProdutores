@@ -1,5 +1,5 @@
-import { api } from './api'; // Importa a instância da API, usada para fazer requisições HTTP.
-import { PrecoDia } from '../types/precos'; // Importa o tipo PrecoDia que define a estrutura dos preços do dia retornados pela API.
+import { api } from './api';
+import { PrecoDia } from '../types/precos';
 
 // Tipo que representa os dados brutos do preço do dia recebidos da API.
 type RawPrecoDia = {

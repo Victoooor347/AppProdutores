@@ -1,38 +1,26 @@
-import React, {
-  useEffect, //gerenciar efeitos colaterais
-  useMemo, //memorização de valores calculados
-  useRef, //guardar valores entre renderizações sem causar nova renderização
-  useState, //gerenciar estados locais
-} from 'react';
-import {
-  View, //container principal
-  Text, //exibir texto
-  ActivityIndicator, //indicador de carregamento
-  RefreshControl, //controle de atualização, puxar para atualizar
-  Alert, //exibir alertas
-  Pressable,
-  FlatList,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; //ícones do Ionicons
-import { useAuth } from '../context/authContext'; //hook personalizado para autenticação
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, ActivityIndicator, RefreshControl, Pressable, FlatList } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../context/authContext';
 import {
   getResumoCargas,
   listCargas,
   listarIdsCargas,
   gerarPdfCargas,
-  consultarJobPdf, //funções de serviço para cargas
+  consultarJobPdf,
+  MAX_CARGAS_POR_PDF,
 } from '../services/cargasService';
-import { Carga, CargasFiltros, Cultura, ResumoCargas } from '../types/cargas'; //tipos de dados para cargas
+import { Carga, CargasFiltros, Cultura, ResumoCargas } from '../types/cargas';
 import { formatDate } from '../utils/format';
-import { ANO_ATUAL, ANO_OPTIONS, Periodo } from '../utils/filtros'; // opções do filtro de ano e tipo do período
-import { abrirPdfGerado, aguardarPdfPronto } from '../utils/pdfJob'; // espera o PDF ficar pronto e abre
+import { ANO_ATUAL, ANO_OPTIONS, Periodo } from '../utils/filtros';
+import { gerarEAbrirPdf } from '../utils/pdfJob';
+import { useListaSelecionavel } from '../hooks/useListaSelecionavel';
 import { themes } from '../global/themes';
-import AppHeader from '../components/AppHeader'; // componente de cabeçalho do aplicativo
-import SelectField from '../components/SelectField'; //componente de campo de seleção
-import DateRangeField from '../components/DateRangeField'; //componente de campo de intervalo de datas
+import AppHeader from '../components/AppHeader';
+import SelectField from '../components/SelectField';
+import DateRangeField from '../components/DateRangeField';
 import { style } from '../global/styles';
 
-// Opções de cultura para o filtro
 const CULTURA_OPTIONS = [
   { label: 'Todas', value: 'todas' as const },
   { label: 'Arroz', value: 'arroz' as const },
@@ -43,11 +31,14 @@ const CULTURA_OPTIONS = [
 // usuário rola até o fim da lista.
 const CARGAS_POR_PAGINA = 30;
 
+// Fora do componente: o hook da lista espera funções que não mudam a cada render
+function buscarPagina(filtros: CargasFiltros, page: number, token: string) {
+  return listCargas({ ...filtros, page }, token);
+}
+
 export default function Relatorios() {
-  // Hook de autenticação para obter o token do usuário
   const { token } = useAuth();
 
-  // Estados para filtros
   const [ano, setAno] = useState(String(ANO_ATUAL));
   const [cultura, setCultura] = useState<Cultura | 'todas'>('todas');
   const [inscricaoEstadual, setInscricaoEstadual] = useState('todas');
@@ -57,30 +48,7 @@ export default function Relatorios() {
   // se refere. "dados: null" = a busca falhou.
   const [resumo, setResumo] = useState<{ ano: string; dados: ResumoCargas | null } | null>(null);
 
-  // Lista de cargas, carregada de página em página. Depende de todos os filtros.
-  const [cargas, setCargas] = useState<Carga[]>([]);
-  const [paginacao, setPaginacao] = useState({ pagina: 1, totalPaginas: 1, totalCargas: 0 });
-  // Filtros da última página 1 que chegou da API (ver isLoadingLista abaixo)
-  const [filtrosCarregados, setFiltrosCarregados] = useState<CargasFiltros | null>(null);
-  const [erroLista, setErroLista] = useState<string | null>(null);
-  const [isLoadingMais, setIsLoadingMais] = useState(false);
-  const [erroMais, setErroMais] = useState(false);
-
-  // Pull-to-refresh: incrementar o contador faz o resumo e a lista buscarem de novo
-  const [recarregamentos, setRecarregamentos] = useState(0);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Estados para seleção de cargas e geração do PDF
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isSelecionandoTodas, setIsSelecionandoTodas] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-
-  // Contador de buscas da lista: cada busca nova incrementa o contador, e a resposta só
-  // é usada se ainda for a mais recente. Assim, se o usuário troca de filtro rápido, uma
-  // resposta atrasada do filtro anterior não sobrescreve o resultado do filtro atual.
-  const listaRequestRef = useRef(0);
-  // Mesma ideia para o "Selecionar todas": trocar de filtro no meio descarta o resultado
-  const selecaoRequestRef = useRef(0);
 
   // Filtros no formato que o service espera ("todas" vira "sem filtro")
   const filtros = useMemo<CargasFiltros>(
@@ -95,12 +63,17 @@ export default function Relatorios() {
     [ano, cultura, inscricaoEstadual, periodo]
   );
 
-  // "Está carregando" é calculado, não guardado: enquanto o resultado que temos for de
-  // outro ano/filtro, mostra o carregamento no lugar dele.
-  const isLoadingResumo = resumo?.ano !== ano;
-  const isLoadingLista = filtrosCarregados !== filtros;
+  const lista = useListaSelecionavel<Carga, CargasFiltros>({
+    token,
+    filtros,
+    buscarPagina,
+    buscarTodosIds: listarIdsCargas,
+    mensagemErroLista: 'Não foi possível carregar as cargas.',
+    mensagemErroSelecao: 'Não foi possível selecionar todas as cargas.',
+  });
 
-  // Memoriza as opções de IE para o filtro, incluindo a opção "todas"
+  const isLoadingResumo = resumo?.ano !== ano;
+
   const inscricoesDoAno = resumo?.dados?.inscricoesEstaduais;
   const ieOptions = useMemo(
     () => [
@@ -110,7 +83,7 @@ export default function Relatorios() {
     [inscricoesDoAno]
   );
 
-  // Busca o resumo do ano quando o ano muda (ou no pull-to-refresh)
+  // Busca o resumo do ano quando o ano muda (ou no pull-to-refresh da lista)
   useEffect(() => {
     if (!token) return;
     // Se o ano mudar antes da resposta chegar, a resposta antiga é descartada
@@ -127,171 +100,26 @@ export default function Relatorios() {
     return () => {
       cancelado = true;
     };
-  }, [token, ano, recarregamentos]);
+  }, [token, ano, lista.recarregamentos]);
 
-  // Busca a página 1 da lista sempre que algum filtro muda (ou no pull-to-refresh)
-  useEffect(() => {
-    if (!token) return;
-    const requestId = ++listaRequestRef.current;
-
-    listCargas({ ...filtros, page: 1 }, token)
-      .then((response) => {
-        if (requestId !== listaRequestRef.current) return;
-        setCargas(response.data);
-        setPaginacao({
-          pagina: response.pagination.page,
-          totalPaginas: response.pagination.totalPages,
-          totalCargas: response.pagination.totalItems,
-        });
-        setErroLista(null);
-      })
-      .catch((error) => {
-        if (requestId !== listaRequestRef.current) return;
-        setErroLista(error?.message ?? 'Não foi possível carregar as cargas.');
-      })
-      .finally(() => {
-        if (requestId !== listaRequestRef.current) return;
-        setFiltrosCarregados(filtros);
-        setIsRefreshing(false);
-        // Se havia uma "próxima página" carregando, ela foi descartada por esta busca
-        setIsLoadingMais(false);
-        setErroMais(false);
-      });
-  }, [token, filtros, recarregamentos]);
-
-  // Busca a próxima página e adiciona no fim da lista (rolagem infinita)
-  async function carregarProximaPagina() {
-    if (!token) return;
-    const requestId = ++listaRequestRef.current;
-    setIsLoadingMais(true);
-    setErroMais(false);
-
-    try {
-      const response = await listCargas({ ...filtros, page: paginacao.pagina + 1 }, token);
-      if (requestId !== listaRequestRef.current) return;
-
-      setCargas((anteriores) => {
-        // Evita repetir uma carga que apareça em duas páginas (ex: carga nova
-        // cadastrada enquanto o usuário rolava a lista).
-        const idsCarregados = new Set(anteriores.map((carga) => carga.id));
-        return [...anteriores, ...response.data.filter((carga) => !idsCarregados.has(carga.id))];
-      });
-      setPaginacao({
-        pagina: response.pagination.page,
-        totalPaginas: response.pagination.totalPages,
-        totalCargas: response.pagination.totalItems,
-      });
-    } catch {
-      if (requestId !== listaRequestRef.current) return;
-      setErroMais(true);
-    } finally {
-      if (requestId === listaRequestRef.current) setIsLoadingMais(false);
-    }
-  }
-
-  // Chamada pela lista quando o usuário chega perto do fim: busca a próxima página, se houver
-  function handleFimDaLista() {
-    if (isLoadingLista || isRefreshing || isLoadingMais || erroMais || erroLista) return;
-    if (paginacao.pagina >= paginacao.totalPaginas) return;
-    carregarProximaPagina();
-  }
-
-  // Função para lidar com a atualização manual dos dados (pull-to-refresh)
-  function handleRefresh() {
-    setIsRefreshing(true);
-    setRecarregamentos((n) => n + 1);
-  }
-
-  // Desmarca tudo (e cancela um "Selecionar todas" que ainda esteja buscando)
-  function limparSelecao() {
-    selecaoRequestRef.current += 1;
-    setIsSelecionandoTodas(false);
-    setSelectedIds(new Set());
-  }
-
-  // Trocar qualquer filtro limpa a seleção: as cargas marcadas podem não fazer parte do novo resultado.
   function handleAnoChange(novoAno: string) {
     setAno(novoAno);
     // As IEs disponíveis e as datas dependem do ano, então esses filtros também voltam ao padrão.
     setInscricaoEstadual('todas');
     setPeriodo({});
-    limparSelecao();
   }
 
-  function handleInscricaoChange(novaInscricao: string) {
-    setInscricaoEstadual(novaInscricao);
-    limparSelecao();
-  }
-
-  function handleCulturaChange(novaCultura: Cultura | 'todas') {
-    setCultura(novaCultura);
-    limparSelecao();
-  }
-
-  function handlePeriodoChange(novoPeriodo: Periodo) {
-    setPeriodo(novoPeriodo);
-    limparSelecao();
-  }
-
-  // Todas as cargas do filtro já estão marcadas? (a seleção é limpa ao trocar de filtro)
-  const todasSelecionadas = paginacao.totalCargas > 0 && selectedIds.size >= paginacao.totalCargas;
-
-  // "Selecionar todas" marca TODAS as cargas do filtro, inclusive as que ainda não
-  // apareceram na rolagem. Se já estão todas marcadas, o botão desmarca.
-  async function handleSelecionarTodas() {
-    if (!token) return;
-    if (todasSelecionadas) {
-      limparSelecao();
-      return;
-    }
-
-    // Se a lista já carregou tudo, não precisa ir na API
-    if (cargas.length >= paginacao.totalCargas) {
-      setSelectedIds(new Set(cargas.map((carga) => carga.id)));
-      return;
-    }
-
-    const requestId = ++selecaoRequestRef.current;
-    setIsSelecionandoTodas(true);
-    try {
-      const ids = await listarIdsCargas(filtros, token);
-      if (requestId !== selecaoRequestRef.current) return;
-      setSelectedIds(new Set(ids));
-    } catch (error: any) {
-      if (requestId !== selecaoRequestRef.current) return;
-      Alert.alert('Erro', error?.message ?? 'Não foi possível selecionar todas as cargas.');
-    } finally {
-      if (requestId === selecaoRequestRef.current) setIsSelecionandoTodas(false);
-    }
-  }
-
-  // Função para alternar a seleção de uma carga pelo seu ID
-  function toggleSelecao(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  }
-
-  // Função para gerar o PDF das cargas selecionadas
   async function handleGerarPdf() {
-    if (!token || selectedIds.size === 0) return;
+    if (!token || lista.selectedIds.size === 0) return;
 
     setIsGeneratingPdf(true);
-    try {
-      const job = await gerarPdfCargas(Array.from(selectedIds), token);
-      const final = await aguardarPdfPronto(job, (jobId) => consultarJobPdf(jobId, token));
-      await abrirPdfGerado(final);
-    } catch (error: any) {
-      Alert.alert('Erro', error?.message ?? 'Não foi possível gerar o PDF.');
-    } finally {
-      setIsGeneratingPdf(false);
-    }
+    await gerarEAbrirPdf(Array.from(lista.selectedIds), {
+      maximo: MAX_CARGAS_POR_PDF,
+      nomeItens: 'cargas',
+      gerar: (ids) => gerarPdfCargas(ids, token),
+      consultar: (jobId) => consultarJobPdf(jobId, token),
+    });
+    setIsGeneratingPdf(false);
   }
 
   // Mostra o total entregue de uma cultura no card de resumo
@@ -344,35 +172,35 @@ export default function Relatorios() {
           label="IE"
           value={inscricaoEstadual}
           options={ieOptions}
-          onChange={handleInscricaoChange}
+          onChange={setInscricaoEstadual}
         />
         <SelectField
           label="Cultura"
           value={cultura}
           options={CULTURA_OPTIONS}
-          onChange={handleCulturaChange}
+          onChange={setCultura}
         />
-        <DateRangeField value={periodo} onChange={handlePeriodoChange} />
+        <DateRangeField value={periodo} onChange={setPeriodo} />
       </View>
 
-      {!isLoadingLista && !erroLista && (
+      {!lista.isLoading && !lista.erro && (
         <View style={style.contadorRowRel}>
           <Text style={style.contadorRel}>
-            {paginacao.totalCargas === 1
+            {lista.totalItens === 1
               ? '1 carga encontrada'
-              : `${paginacao.totalCargas} cargas encontradas`}
+              : `${lista.totalItens} cargas encontradas`}
           </Text>
-          {paginacao.totalCargas > 0 && (
+          {lista.totalItens > 0 && (
             <Pressable
               style={style.selecionarTodasRel}
-              onPress={handleSelecionarTodas}
-              disabled={isSelecionandoTodas}
+              onPress={lista.handleSelecionarTodas}
+              disabled={lista.isSelecionandoTodas}
             >
-              {isSelecionandoTodas ? (
+              {lista.isSelecionandoTodas ? (
                 <ActivityIndicator size="small" color={themes.colors.verdeMedio} />
               ) : (
                 <Text style={style.selecionarTodasTextRel}>
-                  {todasSelecionadas ? 'Desmarcar todas' : 'Selecionar todas'}
+                  {lista.todasSelecionadas ? 'Desmarcar todas' : 'Selecionar todas'}
                 </Text>
               )}
             </Pressable>
@@ -384,25 +212,25 @@ export default function Relatorios() {
       <FlatList
         style={style.listaCargasRel}
         contentContainerStyle={style.contentRel}
-        data={isLoadingLista || erroLista ? [] : cargas}
+        data={lista.isLoading || lista.erro ? [] : lista.itens}
         keyExtractor={(carga) => String(carga.id)}
         refreshControl={
           <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
+            refreshing={lista.isRefreshing}
+            onRefresh={lista.handleRefresh}
             colors={[themes.colors.verdeMedio]}
           />
         }
-        onEndReached={handleFimDaLista}
+        onEndReached={lista.handleFimDaLista}
         onEndReachedThreshold={0.3}
         ListEmptyComponent={
-          isLoadingLista ? (
+          lista.isLoading ? (
             <View style={style.centeredRel}>
               <ActivityIndicator size="large" color={themes.colors.verdeMedio} />
             </View>
-          ) : erroLista ? (
+          ) : lista.erro ? (
             <View style={style.errorBoxRel}>
-              <Text style={style.errorTextRel}>{erroLista}</Text>
+              <Text style={style.errorTextRel}>{lista.erro}</Text>
               <Text style={style.errorHintRel}>Puxe a lista para baixo para tentar de novo.</Text>
             </View>
           ) : (
@@ -412,12 +240,12 @@ export default function Relatorios() {
           )
         }
         ListFooterComponent={
-          isLoadingMais ? (
+          lista.isLoadingMais ? (
             <View style={style.footerListaRel}>
               <ActivityIndicator color={themes.colors.verdeMedio} />
             </View>
-          ) : erroMais ? (
-            <Pressable style={style.footerListaRel} onPress={carregarProximaPagina}>
+          ) : lista.erroMais ? (
+            <Pressable style={style.footerListaRel} onPress={lista.carregarProximaPagina}>
               <Text style={style.retryTextRel}>
                 Não foi possível carregar mais cargas. Toque para tentar de novo.
               </Text>
@@ -425,9 +253,9 @@ export default function Relatorios() {
           ) : null
         }
         renderItem={({ item: carga }) => {
-          const isSelected = selectedIds.has(carga.id);
+          const isSelected = lista.selectedIds.has(carga.id);
           return (
-            <Pressable style={style.cargaRowRel} onPress={() => toggleSelecao(carga.id)}>
+            <Pressable style={style.cargaRowRel} onPress={() => lista.toggleSelecao(carga.id)}>
               <View style={[style.checkboxRel, isSelected && style.checkboxSelectedRel]}>
                 {isSelected && <Ionicons name="checkmark" size={14} color={themes.colors.branco} />}
               </View>
@@ -450,9 +278,9 @@ export default function Relatorios() {
         <Pressable
           style={[
             style.pdfButtonRel,
-            (selectedIds.size === 0 || isGeneratingPdf) && style.pdfButtonDisabledRel,
+            (lista.selectedIds.size === 0 || isGeneratingPdf) && style.pdfButtonDisabledRel,
           ]}
-          disabled={selectedIds.size === 0 || isGeneratingPdf}
+          disabled={lista.selectedIds.size === 0 || isGeneratingPdf}
           onPress={handleGerarPdf}
         >
           {isGeneratingPdf ? (
@@ -460,7 +288,7 @@ export default function Relatorios() {
           ) : (
             <Text style={style.pdfButtonTextRel}>
               Gerar PDF das cargas selecionadas
-              {selectedIds.size > 0 ? ` (${selectedIds.size})` : ''}
+              {lista.selectedIds.size > 0 ? ` (${lista.selectedIds.size})` : ''}
             </Text>
           )}
         </Pressable>

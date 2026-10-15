@@ -1,8 +1,8 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { style } from '../../global/styles';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs'; // Importa o tipo BottomTabBarProps do React Navigation para tipar as props do componente CustomTabBar
-import { AntDesign, Ionicons, MaterialIcons } from '@expo/vector-icons'; // Importa os ícones do pacote @expo/vector-icons para serem usados na barra de navegação
+import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { AntDesign, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { themes } from '../../global/themes';
 
 // Altura da barra de abas, sem contar a área da barra de navegação do celular.

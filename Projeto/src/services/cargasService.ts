@@ -1,4 +1,4 @@
-import { api, buildQuery } from './api'; // Importa a instância da API (requisições HTTP) e a função que monta a query string das URLs.
+import { api, buildQuery } from './api';
 import {
   Carga,
   CargasFiltros,
@@ -6,9 +6,9 @@ import {
   GerarPdfJob,
   ResumoCargas,
   ResumoCultura,
-} from '../types/cargas'; // Importa os tipos Carga, CargasFiltros, CargasResponse, GerarPdfJob, ResumoCargas e ResumoCultura que definem a estrutura das cargas, os filtros possíveis para listagem, a resposta paginada da listagem de cargas, o job de geração de PDF e o resumo do ano.
-import { mapPagination, mapPdfJob, RawGerarPdfJob, RawPagination } from '../utils/apiMappers'; // Conversões da API pro formato do app: paginação e job de geração de PDF.
-import { buscarTodasAsPaginas } from './paginacao'; // Busca todas as páginas de uma lista (usado no "Selecionar todas").
+} from '../types/cargas';
+import { mapPagination, mapPdfJob, RawGerarPdfJob, RawPagination } from '../utils/apiMappers';
+import { buscarTodasAsPaginas } from './paginacao';
 
 // Tipo que representa os dados brutos da carga recebidos da API.
 type RawCarga = {
@@ -92,6 +92,9 @@ export async function listarIdsCargas(filtros: CargasFiltros, token: string): Pr
   );
   return Array.from(new Set(cargas.map((carga) => carga.id)));
 }
+
+// Máximo de cargas num PDF só (limite da API — ver contrato-api.md)
+export const MAX_CARGAS_POR_PDF = 2000;
 
 // Inicia a geração assíncrona do PDF combinando as cargas selecionadas.
 export async function gerarPdfCargas(cargaIds: string[], token: string): Promise<GerarPdfJob> {

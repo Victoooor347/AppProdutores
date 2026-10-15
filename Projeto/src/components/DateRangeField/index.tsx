@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
-import { Calendar, DateData } from 'react-native-calendars'; // Importa o componente Calendar do pacote react-native-calendars para exibir o calendário na tela
+import { Calendar, DateData } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import { themes } from '../../global/themes';
-import { formatDate } from '../../utils/format'; // Importa a função formatDate do arquivo utils/format para formatar as datas exibidas no campo de seleção de período
-import { buildMarkedDates } from '../../utils/daterange'; // Importa a função buildMarkedDates do arquivo utils/daterange para construir os dias marcados no calendário com base no período selecionado
-import { style } from '../../global/styles'; // Importa os estilos do arquivo styles.ts para estilizar o componente DateRangeField
+import { formatDate } from '../../utils/format';
+import { buildMarkedDates } from '../../utils/daterange';
+import { style } from '../../global/styles';
 
 type Range = {
   dataInicio?: string; // ISO "AAAA-MM-DD"

@@ -1,25 +1,25 @@
-import React, { useState } from 'react'; // Importa o React e o hook useState para gerenciar o estado do componente
+import React, { useState } from 'react';
 import {
   Text,
   View,
   Image,
-  TextInput, // Importa componentes do React Native para criar a interface do usuário
-  Alert, // Componente para exibir alertas e mensagens de erro
-  ActivityIndicator, // Componente que exibe um indicador de carregamento (spinner)
-  KeyboardAvoidingView, // Componente que ajusta a interface quando o teclado é exibido
-  Platform, // Componente que permite detectar a plataforma (iOS ou Android) em que o aplicativo está sendo executado
-  Pressable, // Componente que permite criar áreas clicáveis
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
 } from 'react-native';
-import { StackScreenProps } from '@react-navigation/stack'; // Tipo das props que o navegador passa para a tela (navigation, route)
+import { StackScreenProps } from '@react-navigation/stack';
 import { style } from '../../global/styles';
 import logo from '../../assets/logo.png';
-import { useAuth } from '../../context/authContext'; // Importa o hook useAuth do contexto de autenticação para acessar funções e estados relacionados à autenticação
+import { useAuth } from '../../context/authContext';
 import { RootStackParamList } from '../../types/navigation';
 import { FinalidadeCodigo } from '../../types/auth';
 import {
-  formatCpf, // Função para formatar o CPF digitado pelo usuário
-  isValidCpf, // Função para validar se o CPF digitado é válido
-  isValidPassword, // Função para validar se a senha digitada atende aos critérios de segurança
+  formatCpf,
+  isValidCpf,
+  isValidPassword,
   MIN_PASSWORD_LENGTH, // Constante que define o comprimento mínimo da senha
 } from '../../utils/validators';
 

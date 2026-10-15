@@ -3,9 +3,9 @@ import {
   Text,
   TextInput,
   Pressable,
-  ActivityIndicator, // Indicador de carregamento enquanto confirma
+  ActivityIndicator,
   Alert,
-  KeyboardAvoidingView, // Ajusta a tela quando o teclado abre
+  KeyboardAvoidingView,
   ScrollView,
   Platform,
 } from 'react-native';

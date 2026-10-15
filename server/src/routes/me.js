@@ -25,11 +25,21 @@ router.get('/', requireAuth, asyncHandler(async (req, res) => {
 router.put('/', requireAuth, asyncHandler(async (req, res) => {
   const { name, telefone, propriedade } = req.body;
 
+  // O app já valida, mas a API não pode depender disso (sem nome, o banco recusaria → 500)
+  if (typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ message: 'O nome não pode ficar vazio.' });
+  }
+  // Telefone e propriedade são opcionais: texto (pode ser vazio) ou null
+  const ehTextoOpcional = (valor) => valor == null || typeof valor === 'string';
+  if (!ehTextoOpcional(telefone) || !ehTextoOpcional(propriedade)) {
+    return res.status(400).json({ message: 'Telefone ou propriedade em formato inválido.' });
+  }
+
   const result = await pool.query(
     `UPDATE users SET name = $1, telefone = $2, propriedade = $3
      WHERE cpf = $4
      RETURNING cpf, name, email, telefone, propriedade`,
-    [name, telefone, propriedade, req.userCpf]
+    [name.trim(), telefone ?? null, propriedade ?? null, req.userCpf]
   );
 
   return res.json(result.rows[0]);

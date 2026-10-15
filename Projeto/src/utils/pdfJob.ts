@@ -36,3 +36,37 @@ export async function abrirPdfGerado(job: GerarPdfJob): Promise<void> {
     );
   }
 }
+
+type OpcoesGerarPdf = {
+  // Máximo de itens que a API aceita num PDF só (ver contrato-api.md)
+  maximo: number;
+  // Como chamar os itens na mensagem de limite, no plural: "cargas", "contra-notas"
+  nomeItens: string;
+  gerar: (ids: string[]) => Promise<GerarPdfJob>;
+  consultar: (jobId: string) => Promise<GerarPdfJob>;
+};
+
+// Fluxo completo do botão de PDF: confere o limite, pede o PDF, espera ficar pronto e abre.
+// Qualquer problema vira um alerta pro produtor — quem chama só precisa mostrar o carregamento.
+export async function gerarEAbrirPdf(
+  ids: string[],
+  { maximo, nomeItens, gerar, consultar }: OpcoesGerarPdf
+): Promise<void> {
+  // Confere antes de chamar a API, pra explicar o limite em vez de mostrar só o erro
+  if (ids.length > maximo) {
+    Alert.alert(
+      'Seleção grande demais',
+      `O PDF aceita no máximo ${maximo} ${nomeItens}, e você marcou ${ids.length}. ` +
+        'Use os filtros para diminuir a seleção.'
+    );
+    return;
+  }
+
+  try {
+    const job = await gerar(ids);
+    const final = await aguardarPdfPronto(job, consultar);
+    await abrirPdfGerado(final);
+  } catch (error: any) {
+    Alert.alert('Erro', error?.message ?? 'Não foi possível gerar o PDF.');
+  }
+}

@@ -1,20 +1,20 @@
-import React, { useCallback, useEffect, useState } from 'react'; // Importa o React e os hooks useCallback, useEffect e useState para gerenciar o estado e os efeitos colaterais do componente
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  TextInput, // Componente que permite criar campos de entrada de texto
-  ActivityIndicator, // Componente que exibe um indicador de carregamento (spinner)
-  ScrollView, // Componente que permite criar uma área rolável para exibir conteúdo maior que a tela
-  Alert, // Componente para exibir alertas e mensagens de erro
-  Pressable, // Componente que permite criar áreas clicáveis
-  KeyboardAvoidingView, // Componente que ajusta a interface quando o teclado é exibido
-  Platform, // Permite detectar a plataforma (iOS ou Android)
+  TextInput,
+  ActivityIndicator,
+  ScrollView,
+  Alert,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { useAuth } from '../context/authContext'; // Importa o hook useAuth do contexto de autenticação para acessar informações do usuário e funções relacionadas à autenticação
-import { getProfile, updateProfile } from '../services/userService'; // Importa as funções getProfile e updateProfile do serviço de usuário para buscar e atualizar o perfil do usuário
-import { UserProfile } from '../types/userprofile'; // Importa o tipo UserProfile que define a estrutura do perfil do usuário
+import { useAuth } from '../context/authContext';
+import { getProfile, updateProfile } from '../services/userService';
+import { UserProfile } from '../types/userprofile';
 import { themes } from '../global/themes';
-import AppHeader from '../components/AppHeader'; // Importa o componente AppHeader que exibe o cabeçalho da aplicação
+import AppHeader from '../components/AppHeader';
 import { style } from '../global/styles';
 import { formatCpf } from '../utils/validators'; // Aplica a máscara 000.000.000-00 no CPF que vem da API só com números
 

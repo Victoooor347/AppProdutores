@@ -15,12 +15,14 @@ AppProdutores/
 ## Stack
 
 **App:**
+
 - [Expo](https://expo.dev) SDK 57 / React Native 0.86 / React 19.2 / TypeScript 6
 - React Navigation (bottom tabs + stack)
 - `expo-secure-store` para persistência segura de sessão
 - `react-native-calendars` para o seletor de período nos filtros
 
 **API de referência:**
+
 - Node.js / Express
 - PostgreSQL ([Neon](https://neon.tech))
 - `pdfkit` para geração de relatórios em PDF
@@ -42,9 +44,10 @@ npm install
 cp .env.example .env
 ```
 
-Edite o `.env` e cole a connection string do seu banco em `DATABASE_URL` (Dashboard do Neon → **Connection Details**, com `?sslmode=require` no final).
+Edite o `.env` e cole a connection string do seu banco em `DATABASE_URL` (Dashboard do Neon → **Connection Details**, trocando o final por `?sslmode=verify-full` — assim a conexão confere o certificado do banco).
 
 Rode o schema e os dados de teste (uma vez só, no SQL Editor do Neon ou via `psql`):
+
 ```bash
 psql "$DATABASE_URL" -f schema.sql
 psql "$DATABASE_URL" -f seed.sql
@@ -53,9 +56,11 @@ psql "$DATABASE_URL" -f seed.sql
 **E-mail (opcional em desenvolvimento):** os códigos de primeiro acesso e recuperação de senha são enviados por SMTP, configurado no `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — exemplos no `.env.example`). Com `SMTP_HOST` vazio, nada é enviado: o e-mail, com o código, aparece no terminal da API.
 
 Suba a API:
+
 ```bash
 npm run dev
 ```
+
 Vai subir em `http://localhost:3000`.
 
 ### 2. O app
@@ -67,6 +72,7 @@ cp .env.example .env
 ```
 
 No `.env` do app, aponte pra API que você acabou de subir:
+
 ```
 EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:3000
 ```
@@ -76,11 +82,13 @@ EXPO_PUBLIC_API_URL=http://SEU_IP_LOCAL:3000
 ```bash
 npx expo start
 ```
+
 Escaneia o QR code com o Expo Go, ou pressiona `a`/`i` no terminal pra abrir num emulador.
 
 ## Login de teste
 
 Com o `seed.sql` rodado, use:
+
 - **CPF:** `529.982.247-25`
 - **Senha:** `123456`
 
@@ -92,20 +100,21 @@ Para testar o **Primeiro acesso**, use o CPF `111.444.777-35` — ele está cada
 
 **Dentro de `Projeto/`:**
 
-| Comando | O que faz |
-|---|---|
-| `npm start` | Inicia o servidor de desenvolvimento do Expo |
-| `npm run android` / `npm run ios` / `npm run web` | Inicia direto numa plataforma específica |
-| `npm test` | Roda os testes automatizados (Jest) |
-| `npm run lint` / `npm run lint:fix` | Roda o ESLint |
-| `npm run format` / `npm run format:check` | Roda o Prettier |
+| Comando                                           | O que faz                                    |
+| ------------------------------------------------- | -------------------------------------------- |
+| `npm start`                                       | Inicia o servidor de desenvolvimento do Expo |
+| `npm run android` / `npm run ios` / `npm run web` | Inicia direto numa plataforma específica     |
+| `npm test`                                        | Roda os testes automatizados (Jest)          |
+| `npm run lint` / `npm run lint:fix`               | Roda o ESLint                                |
+| `npm run format` / `npm run format:check`         | Roda o Prettier                              |
 
 **Dentro de `server/`:**
 
-| Comando | O que faz |
-|---|---|
-| `npm start` | Sobe a API normalmente |
-| `npm run dev` | Sobe a API com reload automático ao salvar |
+| Comando       | O que faz                                                                  |
+| ------------- | -------------------------------------------------------------------------- |
+| `npm start`   | Sobe a API normalmente                                                     |
+| `npm run dev` | Sobe a API com reload automático ao salvar                                 |
+| `npm test`    | Roda os testes automatizados da API (não precisa de banco: ele é simulado) |
 
 ## Estrutura do app (`Projeto/src`)
 
@@ -120,11 +129,15 @@ routes/         Navegação (stack + tabs) e a lógica de rotas protegidas
 services/       Camada de acesso à API — api.ts (requisições, erros, token) e um
                 arquivo por domínio, que converte a resposta da API pro formato do app
 types/          Tipos TypeScript compartilhados (inclusive as telas e parâmetros da navegação)
+hooks/          useListaSelecionavel — lista com rolagem infinita, pull-to-refresh e seleção
+                múltipla, usada pelo Relatório de Safra e pelas Contra-Notas
 utils/          Formatação (moeda, data), validação de CPF/senha/código, marcação do período no
-                calendário, opções dos filtros (anos) e espera/abertura dos PDFs gerados (pdfJob)
+                calendário, opções dos filtros (anos), geração/abertura dos PDFs (pdfJob) e
+                regras de renovação da sessão (sessao)
+testes/         Ferramentas usadas só pelos testes automatizados (renderHook)
 ```
 
-Os testes ficam em pastas `__tests__` ao lado do código testado (`services/__tests__`, `utils/__tests__`).
+Os testes ficam em pastas `__tests__` ao lado do código testado (`services/__tests__`, `utils/__tests__`, `hooks/__tests__`, `context/__tests__`).
 
 Os ícones do app e a imagem da tela de abertura ficam em `Projeto/assets/` (fora do `src`), como o `app.json` espera. Os atuais são **provisórios**, gerados a partir do `logo.png`.
 
@@ -135,9 +148,11 @@ db.js               Conexão com o Postgres
 middleware/auth.js   Confere o token em toda rota protegida
 routes/              Um arquivo por domínio: auth, me, precos, cargas, relatorios, contraNotas
 services/            pdfService (PDF do relatório, PDFs de exemplo e junção de PDFs das
-                     contra-notas), emailService (envio por SMTP) e
-                     codigoService (códigos de primeiro acesso / recuperação de senha)
-utils/asyncHandler.js  Garante que erro em rota async cai certinho no tratamento de erro
+                     contra-notas), emailService (envio por SMTP),
+                     codigoService (códigos de primeiro acesso / recuperação de senha) e
+                     tentativasService (limite de tentativas contra força bruta)
+utils/               asyncHandler (erro em rota async cai no tratamento de erro), erroHttp
+                     (erro com status HTTP) e validacao (página, datas, IDs... → 400)
 ```
 
 `schema.sql` e `seed.sql`, na raiz de `server/`, criam as tabelas e populam dados de teste. A pasta `server/migracoes/` tem as mudanças de banco para quem já tinha o banco criado.
@@ -150,6 +165,8 @@ utils/asyncHandler.js  Garante que erro em rota async cai certinho no tratamento
 4. `routes/index.routes.tsx` decide automaticamente entre a tela de Login e o app principal, com base no estado de autenticação — não existe navegação manual "pulando" o login.
 5. Se a API responder `401` numa requisição com token (sessão expirada ou revogada), o `api.ts` avisa o `AuthContext`, que encerra a sessão e volta pro login com o aviso "Sua sessão expirou".
 6. Logout sai na hora no celular e avisa a API (`POST /auth/logout`) pra invalidar o token também no servidor.
+7. O token vale 24h. Sempre que o app abre ou volta pra tela, o `AuthContext` troca o token por um novo (`POST /auth/refresh`) se faltar menos de 12h — quem usa o app todo dia não precisa digitar a senha de novo.
+8. A API bloqueia o login por 15 minutos depois de 5 senhas erradas no mesmo CPF (ou 20 no mesmo IP), e limita os pedidos de código por e-mail por IP.
 
 ### Primeiro acesso e recuperação de senha
 
@@ -163,14 +180,14 @@ Regras do código: vale 10 minutos, uso único, 5 tentativas erradas invalidam, 
 
 ## Telas
 
-| Tela | O que mostra |
-|---|---|
-| **Login** | CPF e senha, com links para "Esqueci minha senha" e "Primeiro acesso" |
-| **Primeiro acesso / Esqueci minha senha** | Duas etapas: CPF → código enviado por e-mail + senha nova. Entra direto no final |
-| **Dashboard** | Cotação do dia (Arroz/Soja), com data da última atualização |
-| **Relatório de Safra** | Total entregue no ano por cultura e as cargas entregues, filtráveis por ano / IE / cultura / período (calendário), carregadas de 30 em 30 conforme a rolagem, com seleção múltipla ("Selecionar todas" marca todas as do filtro) e geração de PDF combinado |
-| **Contra-Notas** | Notas fiscais filtráveis por ano / período (calendário), carregadas de 20 em 20 conforme a rolagem, com link direto pro PDF de cada uma e seleção múltipla ("Selecionar todas") para baixar um PDF único com as notas juntas |
-| **Perfil** | Dados do produtor (nome, telefone, propriedade — CPF e e-mail só para consulta) e logout |
+| Tela                                      | O que mostra                                                                                                                                                                                                                                                |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Login**                                 | CPF e senha, com links para "Esqueci minha senha" e "Primeiro acesso"                                                                                                                                                                                       |
+| **Primeiro acesso / Esqueci minha senha** | Duas etapas: CPF → código enviado por e-mail + senha nova. Entra direto no final                                                                                                                                                                            |
+| **Dashboard**                             | Cotação do dia (Arroz/Soja), com data da última atualização                                                                                                                                                                                                 |
+| **Relatório de Safra**                    | Total entregue no ano por cultura e as cargas entregues, filtráveis por ano / IE / cultura / período (calendário), carregadas de 30 em 30 conforme a rolagem, com seleção múltipla ("Selecionar todas" marca todas as do filtro) e geração de PDF combinado |
+| **Contra-Notas**                          | Notas fiscais filtráveis por ano / período (calendário), carregadas de 20 em 20 conforme a rolagem, com link direto pro PDF de cada uma e seleção múltipla ("Selecionar todas") para baixar um PDF único com as notas juntas                                |
+| **Perfil**                                | Dados do produtor (nome, telefone, propriedade — CPF e e-mail só para consulta) e logout                                                                                                                                                                    |
 
 ## API e próxima etapa
 
@@ -179,14 +196,14 @@ O contrato completo de endpoints está documentado em [`contrato-api.md`](contra
 ## Qualidade de código
 
 - **ESLint** (`npm run lint`) e **Prettier** (`npm run format`) — configurados em `eslint.config.js` e `.prettierrc.json`.
-- **Testes automatizados** (`npm test`) com Jest + `jest-expo`. Cobrem a camada de API (requisições, token, erros, sessão expirada, falta de conexão/tempo esgotado), a conversão dos dados da API e as validações/formatações. As telas ainda não têm teste automatizado.
+- **Testes automatizados** (`npm test`) com Jest + `jest-expo`. Cobrem a camada de API (requisições, token, erros, sessão expirada, falta de conexão/tempo esgotado), a conversão dos dados da API, as validações/formatações, a lista com seleção (`useListaSelecionavel`) e a renovação da sessão (`AuthContext`). As telas em si ainda não têm teste automatizado.
+- **Testes da API** (`npm test` dentro de `server/`) com o executor de testes do próprio Node. Cobrem a validação de entrada (entrada inválida → `400`, sem chegar no banco), login e limite de tentativas, sessões, códigos por e-mail e a checagem de dono das cargas. O banco é simulado (`src/testes/ferramentas.js`), então os testes não precisam de conexão nem mexem em dados.
 - **Hook de commit** (Husky + lint-staged): antes de cada commit, nos arquivos que vão entrar nele, o ESLint corrige o que der, o Prettier formata e os testes relacionados rodam. Se algum teste falhar, o commit é bloqueado.
   - O hook é instalado sozinho no `npm install` dentro de `Projeto/`, desde que o `.git` esteja na pasta de cima (raiz do repositório).
   - Na primeira vez que um arquivo for commitado, o Prettier pode mudar bastante a formatação dele (aspas, espaços). Pra fazer isso de uma vez só, rode `npm run format` e faça um commit só de formatação.
 
 ## O que ainda falta
 
-- **API de produção** ligada ao ERP da empresa, seguindo o [`contrato-api.md`](contrato-api.md) — incluindo os requisitos de segurança da seção 10 (limite de tentativas no login, validação de entrada, armazenamento durável dos PDFs), que a API de referência não implementa
-- Renovação automática do token antes de expirar (`POST /auth/refresh` já existe na API; falta o app usar)
+- **API de produção** ligada ao ERP da empresa, seguindo o [`contrato-api.md`](contrato-api.md) — incluindo os requisitos de segurança da seção 9 que a API de referência ainda não cumpre (armazenamento durável dos PDFs)
 - Testes automatizados das telas
 - Definir nome final do app (`name`/`slug` no `app.json` ainda são "Projeto") e o ícone/identidade visual definitivos
