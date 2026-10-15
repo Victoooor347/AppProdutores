@@ -606,24 +606,8 @@ Se o PDF de alguma nota não puder ser obtido (ex: arquivo não encontrado no ER
 
 Consulta o andamento, igual ao [`GET /relatorios/gerar-pdf/{job_id}`](#get-relatoriosgerar-pdfjob_id). Job de outro produtor, inexistente ou com ID inválido → `404`.
 
----
 
-## 9. Histórico de mudanças
-
-| Data | Mudança |
-|---|---|
-| 29/09/2026 | Documento reescrito a partir do código do app. |
-| 29/09/2026 | `GET /cargas/resumo` passa a devolver `inscricoes_estaduais` (o app não baixa mais a lista inteira de cargas só para montar o filtro de IE). |
-| 29/09/2026 | `POST /auth/login`: o app passa a mandar o CPF **só com dígitos**. |
-| 29/09/2026 | Listas passam a exigir ordenação estável (com desempate), por causa da rolagem infinita. |
-| 29/09/2026 | Regra de `401` × `403` explicitada: `401` agora faz o app deslogar. |
-| 29/09/2026 | Contra-notas: o app passa a carregar em páginas de 20 (antes pedia 50 e mostrava só a primeira página). |
-| 29/09/2026 | **Primeiro acesso e recuperação de senha** por código no e-mail: 4 rotas novas em `/auth/primeiro-acesso/...` e `/auth/recuperar-senha/...`. Produtor pode existir sem senha (cadastrado pela empresa). `GET /me` passa a devolver `email`. Login devolve mensagem própria para quem ainda não criou a senha. |
-| 29/09/2026 | **Contra-notas:** filtros `ano`, `data_inicio` e `data_fim`; rotas novas `POST /contra-notas/gerar-pdf` e `GET /contra-notas/gerar-pdf/{job_id}` (PDF único com as notas selecionadas). **"Selecionar todas"** no Relatório de Safra e nas Contra-Notas: o app percorre as páginas com `per_page=100`. |
-
----
-
-## 10. Requisitos de segurança e produção
+## 9. Requisitos de segurança e produção
 
 Não mudam o formato das respostas, mas a API de produção **precisa** atender:
 
@@ -650,7 +634,7 @@ Não mudam o formato das respostas, mas a API de produção **precisa** atender:
 
 ---
 
-## 11. Checklist para quem for implementar
+## 10. Checklist para quem for implementar
 
 - [ ] Todas as rotas da [seção 3](#3-resumo-das-rotas) existem, com os mesmos caminhos e métodos.
 - [ ] Nomes de campo em `snake_case`, exatamente como nos exemplos.

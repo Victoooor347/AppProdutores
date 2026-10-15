@@ -1,6 +1,6 @@
 # AppProdutores
 
-App mobile (Expo / React Native) de acesso exclusivo para produtores da Dickow Alimentos, com cotação do dia, relatório de safra (cargas), contra-notas e perfil do usuário.
+App mobile (Expo / React Native) de acesso exclusivo para produtores da Dickow Alimentos, com preço do dia(arroz e soja), relatório de safra (cargas), contra-notas e perfil do usuário.
 
 O projeto tem **duas partes**, cada uma com seu próprio `package.json`:
 
@@ -50,8 +50,6 @@ psql "$DATABASE_URL" -f schema.sql
 psql "$DATABASE_URL" -f seed.sql
 ```
 
-**Banco criado antes de 29/09/2026?** Rode também as migrações da pasta `server/migracoes/`, em ordem de data (cada uma pode ser rodada de novo sem problema). Banco novo, criado com o `schema.sql` atual, não precisa.
-
 **E-mail (opcional em desenvolvimento):** os códigos de primeiro acesso e recuperação de senha são enviados por SMTP, configurado no `.env` (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` — exemplos no `.env.example`). Com `SMTP_HOST` vazio, nada é enviado: o e-mail, com o código, aparece no terminal da API.
 
 Suba a API:
@@ -89,8 +87,6 @@ Com o `seed.sql` rodado, use:
 As contra-notas de teste abrem um **PDF de exemplo** gerado pela própria API (o link delas começa com `/arquivos/contra-notas/exemplo/`). Na produção, cada link aponta pro PDF real, vindo do ERP.
 
 Para testar o **Primeiro acesso**, use o CPF `111.444.777-35` — ele está cadastrado, mas ainda sem senha. Na tela de login, toque em "Primeiro acesso? Crie sua senha". Sem SMTP configurado, o código aparece no terminal da API. Para voltar esse usuário ao estado "sem senha" e testar de novo: `UPDATE users SET password_hash = NULL WHERE cpf = '11144477735';`
-
-O app não tem mais modo offline/mock: sem `EXPO_PUBLIC_API_URL` configurada, ele mostra uma mensagem avisando que o endereço do servidor não está configurado.
 
 ## Scripts disponíveis
 

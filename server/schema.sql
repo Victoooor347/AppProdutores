@@ -23,8 +23,7 @@ CREATE TABLE users (
 );
 
 -- ---------------------------------------------------------
--- 2. Sessões (para o refresh e o logout invalidando no servidor
---    — ver decisão da Opção B no contrato da API)
+-- 2. Sessões (para o refresh e o logout invalidando no servidor)
 -- ---------------------------------------------------------
 CREATE TABLE sessions (
   id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
